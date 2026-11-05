@@ -204,7 +204,7 @@ if (require.main === module) {
     prepareTables(conexion).then(() => {
     const port = Number(process.env.PORT || 3001);
     const server = createApp(conexion).listen(port,'0.0.0.0',() => {
-const server = createApp(conexion).listen(port,'0.0.0.0',() => {
+      console.log('Prueba de conexión: http://127.0.0.1:3001/probar-conexion');
       console.log('Prueba de conexión: http://127.0.0.1:3001/probar-conexion');
       console.log('RETAMAT completo: http://127.0.0.1:3001');
       console.log('Crear cuenta en MySQL: http://127.0.0.1:3001/registro');
