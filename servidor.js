@@ -199,9 +199,11 @@ if (require.main === module) {
     console.error('Completa DB_HOST, DB_USER y DB_NAME en el archivo .env junto a servidor.js.');
     process.exitCode = 1;
   } else {
-    const conexion = mysql.createPool({host:process.env.DB_HOST,port:Number(process.env.DB_PORT || 3306),user:process.env.DB_USER,password:process.env.DB_PASSWORD || '',database:process.env.DB_NAME,charset:'utf8mb4',connectionLimit:5});
+    const ssl = (process.env.DB_HOST || '').includes('tidbcloud') ? {minVersion:'TLSv1.2',rejectUnauthorized:true} : undefined;
+    const conexion = mysql.createPool({host:process.env.DB_HOST,port:Number(process.env.DB_PORT || 3306),user:process.env.DB_USER,password:process.env.DB_PASSWORD || '',database:process.env.DB_NAME,charset:'utf8mb4',connectionLimit:5,ssl});
     prepareTables(conexion).then(() => {
     const port = Number(process.env.PORT || 3001);
+    const server = createApp(conexion).listen(port,'0.0.0.0',() => {
 const server = createApp(conexion).listen(port,'0.0.0.0',() => {
       console.log('Prueba de conexión: http://127.0.0.1:3001/probar-conexion');
       console.log('RETAMAT completo: http://127.0.0.1:3001');
