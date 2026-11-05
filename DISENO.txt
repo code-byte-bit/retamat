@@ -1,0 +1,32 @@
+RETAMAT 2.2 — GUÍA VISUAL
+
+TIPOGRAFÍA
+Manrope, pesos 400, 500, 600, 700 y 800. Los archivos WOFF2 y su licencia
+SIL Open Font License se incluyen en public/assets/fonts. Si no carga,
+se utiliza Arial o la fuente sin remates del sistema.
+Títulos: peso 800. Botones y etiquetas: 700. Texto: 400 o 500.
+
+COLORES PRINCIPALES
+Verde profundo #152E2B: menú lateral e identidad.
+Verde #276457: acciones principales y enlaces.
+Lima #DFF58B: acción destacada y sección seleccionada.
+Fondo #F5F7F3: superficie general de la aplicación.
+Blanco #FFFFFF: tarjetas, formularios y paneles.
+Texto #203C35 y texto de apoyo #6A7972.
+Sage, durazno y lavanda distinguen álgebra, fracciones y geometría.
+Las variantes de modo oscuro y alto contraste están en diseno.css.
+
+COMPONENTES
+Bordes suaves, esquinas redondeadas y sombras discretas.
+Iconos de trazo e ilustraciones SVG editables, sin imágenes externas.
+Los estados seleccionados combinan color, iconos y texto.
+Las cifras del panel pertenecen a cada cuenta; no son estadísticas inventadas.
+El menú lateral conserva su propio desplazamiento para pantallas bajas.
+En celular, el menú se abre con el botón superior izquierdo.
+
+EDITAR EN VISUAL STUDIO CODE
+public/assets/diseno.css: identidad, distribución y adaptación visual.
+public/assets/interfaz.js: contenido y estructura de cada pantalla.
+public/assets/fonts: tipografía local y licencia.
+public/index.html: orden de carga de los estilos.
+El diseño no requiere compilar ni instalar herramientas adicionales.

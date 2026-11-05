@@ -1,0 +1,136 @@
+RETAMAT 2.4 — HERRAMIENTAS DE ESTUDIO + MYSQL
+
+ACTUALIZAR TU SERVIDOR ACTUAL (MAX)
+1. Detén el servidor anterior con Ctrl + C.
+2. Extrae el CONTENIDO del ZIP en C:\Users\Maximiliano\servidor.
+   servidor.js debe quedar junto a tu .env, no dentro de otra subcarpeta.
+3. Reemplaza los archivos del proyecto. Conserva tu .env.
+   Ejecuta npm install para instalar las dependencias nuevas, o utiliza el BAT
+   del paso 5, que las instala si faltan.
+   El ZIP no incluye .env ni tus credenciales y no borra la base de datos.
+4. Enciende MySQL en WAMP.
+5. Abre INICIAR_RETAMAT.bat. Mantén esa ventana abierta.
+6. Abre http://127.0.0.1:3001 y recarga con Ctrl + F5.
+7. Entra con el correo y contraseña de tu cuenta de MySQL.
+También puedes usar la terminal de Visual Studio Code en esa carpeta:
+   npm start
+   o: node servidor.js
+No uses Live Server ni abras public/index.html con doble clic.
+
+NUEVO EN 2.4
+Borradores de práctica y pizarra guardados, calculadora, biblioteca de apoyo,
+simulacros con tiempo, controles de lectura y comparación de actividades.
+Consulta ESTUDIO.txt para conocer su uso. No hay dependencias nuevas ni SQL
+adicional: conserva .env, reemplaza los archivos y reinicia el servidor.
+
+NUEVO EN 2.3
+Pistas por pasos, repaso con ejercicios nuevos, reto diario, insignias,
+explicaciones animadas, seguimiento docente e instalación como aplicación.
+Consulta APRENDIZAJE.txt para saber dónde aparece cada función.
+
+FUNCIONES INTEGRADAS
+Diseño renovado: verde profundo y lima, fuente Manrope incluida, ilustraciones
+matemáticas, inicio reorganizado y mejoras en formularios, tarjetas y modo oscuro.
+18 lecciones de álgebra, fracciones y geometría; ruta de diez niveles.
+Diagnóstico adaptable de diez preguntas; prácticas de seis.
+Preguntas numéricas, opción múltiple, verdadero/falso e imágenes.
+Banco docente, tareas, exámenes ponderados y revisión de procedimientos.
+Grupos, inscripción por código, avisos, calendario, reportes y comentarios.
+Desafíos, conversación y clasificación compartidas.
+Apuntes con autoguardado, favoritos, metas, historial y cuaderno de errores.
+Gestión de usuarios, contenido y respaldos para el administrador.
+Música instrumental incluida: apagada al abrir, con pausa y volumen.
+
+DATOS EXISTENTES
+Las cuentas siguen en usuarios con la misma contraseña de MySQL.
+En el primer acceso se integran los grupos, inscripciones, tareas, entregas,
+diagnósticos y prácticas de la versión MySQL anterior, conservando sus IDs y
+respuestas. Las prácticas antiguas se asocian a una lección equivalente. El
+diagnóstico antiguo conserva sus preguntas; los nuevos son adaptables.
+No ejecutes DROP TABLE, TRUNCATE ni borres las tablas para actualizar.
+
+Los avances guardados únicamente en el HTML anterior abierto con file://
+permanecen en ese navegador: localhost no puede leerlos automáticamente.
+Exporta su JSON e impórtalo desde Respaldos con un administrador de MySQL.
+Todos los correos de la copia deben registrarse primero en MySQL. Se combina
+el contenido por ID y se conservan cuentas, contraseñas, permisos y miembros.
+La importación rechaza cambios de propietario o de referencias de entregas.
+Una copia con el mismo ID puede actualizar contenido: exporta antes una copia
+actual. No es posible incorporar una copia dañada o de otro formato.
+
+INSTALACIÓN NUEVA
+Requisitos: Node.js 22 o superior y MySQL/MariaDB encendido.
+1. Abre la carpeta en Visual Studio Code.
+2. Copia .env.example como .env y configura tus datos de MySQL.
+3. Ejecuta npm install.
+4. Ejecuta npm run setup para crear la base y tablas si no existen.
+5. Ejecuta npm start y abre http://127.0.0.1:3001.
+Si tu usuario MySQL no puede crear bases, crea retamat en Workbench primero
+y utiliza una cuenta con permisos sobre esa base.
+
+ESTUDIANTE Y DOCENTE
+Pulsa Crear cuenta y elige Estudiante o Docente. No hay cuentas demo ni una
+contraseña pública. El docente crea el grupo; el alumno se une con el código.
+Los avisos y las salas se actualizan en vivo con eventos del servidor (SSE).
+También puedes pulsar Actualizar para consultar cambios manualmente.
+
+ADMINISTRADOR
+Si ya tienes una cuenta administradora, usa la misma.
+Para asignar el PRIMER administrador, registra esa cuenta y ejecuta:
+   node crear-admin.js correo@ejemplo.com
+Solo funciona si no existe un administrador activo. Los demás cambios se
+hacen desde Usuarios. Debe permanecer al menos un administrador activo.
+
+RECUPERAR CONTRASEÑA
+Puedes usar ¿Olvidaste tu contraseña? si el administrador configuró SMTP.
+El administrador también puede restablecerla desde Usuarios con su contraseña.
+Si eres responsable del servidor y olvidaste el acceso, ejecuta:
+   node restablecer-clave.js correo@ejemplo.com
+Escribe la nueva contraseña dos veces. No aparece en la terminal. No se envían
+correos ni se cambian roles, estado o avances. Se invalidan sesiones anteriores.
+
+CONSULTAR MYSQL
+Ejecuta VERIFICAR_MYSQL.sql en Workbench sobre retamat.
+Se mantienen las tablas anteriores y se agregan:
+- espacio_control: revisión y marca de migración.
+- espacio_registros: contenido original por colección e identificador.
+- espacio_comandos: identifica reintentos para evitar duplicados.
+Lecciones, preguntas, apuntes, salas y preferencias están en espacio_registros.
+Grupos, tareas y resultados se reflejan en las tablas anteriores dentro de la
+misma transacción. No edites ni vacíes estas tablas manualmente.
+
+RESPALDOS
+El JSON exporta contenido educativo; nunca las credenciales reales.
+Los adjuntos se exportan como metadatos, no como archivos binarios. Para
+conservar su contenido debes incluir la tabla archivos en tu respaldo MySQL.
+Para una copia completa usa Data Export en MySQL Workbench e incluye todas
+las tablas de retamat. Guarda tu .env de forma privada. Los respaldos contienen
+datos personales: no los publiques.
+
+PROBLEMAS FRECUENTES
+Puerto 3001 ocupado: detén el otro servidor con Ctrl + C y vuelve a iniciar.
+Access denied: revisa DB_USER y DB_PASSWORD en .env.
+Unknown database: ejecuta npm run setup o crea retamat en Workbench.
+Diseño anterior: abre la dirección indicada y pulsa Ctrl + F5.
+Demasiados intentos: espera quince minutos. Reiniciar Node limpia el contador
+y cierra las sesiones; conserva las cuentas y avances.
+Apunte sin guardar: conserva la pestaña y reintenta al recuperar el servidor.
+Los borradores pendientes no son un respaldo permanente.
+
+ALCANCE Y PRUEBAS
+La dirección 127.0.0.1:3001 funciona en esta computadora. No se configura aquí
+alojamiento público, correo ni acceso desde otras computadoras.
+Las sesiones duran ocho horas y se cierran al reiniciar el servidor.
+Lee NOVEDADES.txt para las seis funciones nuevas y CONFIGURAR_CORREO.txt
+para activar la recuperación por correo. Se agregan archivos y recuperaciones
+a las doce tablas anteriores: catorce tablas en total.
+Node.js valida permisos, respuestas y plazos de los exámenes.
+Ejecuta npm install y npm test para las pruebas de HTTP, dominio e interfaz.
+Las pruebas usan una base y un DOM simulados: queda comprobar la conexión con
+tu instancia real de MySQL y escuchar la música en tu navegador. Se conservan
+el CSS, audio y generador matemático originales.
+
+AUTORES
+Andrés Garcia Hernández
+Maximiliano Garcia Pérez
+Kevin Alexander Roman Lopez

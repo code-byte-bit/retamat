@@ -1,0 +1,97 @@
+RETAMAT 2.4 — CÓMO USAR LAS HERRAMIENTAS DE ESTUDIO
+
+ACTUALIZAR EN TU COMPUTADORA
+Detén el servidor con Ctrl + C. Extrae el CONTENIDO del ZIP en
+C:\Users\Maximiliano\servidor, conservando tu .env.
+Enciende MySQL en WAMP, abre INICIAR_RETAMAT.bat y recarga con Ctrl + F5.
+No hay paquetes nuevos ni scripts SQL adicionales.
+
+1. BORRADORES DE PRÁCTICAS
+Tu respuesta se guarda automáticamente al dejar de escribir. También puedes
+pulsar Guardar borrador ahora. Guardar no equivale a enviar ni a calificar:
+puedes conservar una respuesta incompleta como 1/ hasta terminar de resolver.
+El estado indica si está pendiente o si ya se confirmó en MySQL.
+
+Si cierras antes de confirmar, este navegador conserva una copia local ligada
+a tu cuenta, práctica y pregunta. Para recuperarla, enciende el servidor,
+inicia sesión con la misma cuenta en el mismo navegador y retoma esa práctica.
+Los borradores ya confirmados en MySQL también se recuperan al volver a entrar.
+La copia local se elimina al confirmar el guardado. Cerrar sesión guarda los
+cambios pendientes y elimina las copias locales de esa cuenta; si falla el
+guardado, la salida se detiene para que puedas conservar o copiar tu trabajo.
+Si el navegador no permite almacenamiento local, el estado te lo informa;
+mantén la página abierta hasta confirmar en MySQL o copia el procedimiento.
+
+Si otra pestaña cambia la pregunta o el borrador, no se sobrescribe en silencio.
+Compara las versiones y elige Usar versión guardada o Guardar mi versión.
+Si ya enviaron esa pregunta, copia el procedimiento antes de actualizarla;
+no se vuelve a enviar automáticamente una respuesta para una pregunta distinta.
+Al enviar una respuesta se limpia su borrador y comienza la siguiente pregunta.
+Estos borradores no corresponden a los borradores revisables de exámenes, que
+siguen conservando su funcionamiento anterior.
+
+2. PIZARRA Y CALCULADORA
+En una práctica personal abre Mi espacio de trabajo. Puedes escribir un
+procedimiento o dibujar con ratón/puntero/pantalla táctil. El campo escrito
+ofrece una alternativa de teclado. Hay tres colores, tres grosores, Deshacer
+y Limpiar dibujo. Un dibujo borrado puede recuperarse con Deshacer.
+La pizarra guarda hasta 80 trazos y 3000 puntos por pregunta; el texto admite
+8000 caracteres. La respuesta admite 80 caracteres. La pizarra es privada de
+la práctica y se limpia con su borrador después de enviar la respuesta.
+
+La calculadora admite +, -, ×, ÷, *, /, paréntesis, potencias con ^, porcentajes,
+sqrt() y abs(). Ejemplo: (3/4 + 1/4) * 6 devuelve 6. No admite código JavaScript.
+Para π escribe el valor que pida el ejercicio, como 3.14. El resultado no se
+copia ni se envía automáticamente como respuesta.
+No se habilitan estas herramientas en evaluaciones, tareas asignadas, exámenes,
+simulacros ni salas de desafío. Su uso fuera de RETAMAT no se bloquea.
+
+3. BIBLIOTECA DE APOYO
+Abre Biblioteca de apoyo. Filtra por tema, material o palabra. Incluye seis
+ejemplos resueltos y tres guías originales que funcionan con el servidor local
+sin conexión a Internet. Abrir material muestra los pasos y, si corresponde,
+un enlace a la lección relacionada.
+Los tres videos se enlazan al sitio de Khan Academy, se abren en otra pestaña
+y requieren Internet. RETAMAT no descarga los videos ni afirma ser su autor.
+Los enlaces se verificaron al preparar esta versión. Consulta FUENTES_VIDEOS.txt.
+
+4. SIMULACRO DE EXAMEN
+Disponible para estudiantes en Simulacro de examen. Elige uno o varios temas,
+nivel 1–10, entre 3 y 10 preguntas y un tiempo de 1–90 minutos.
+Sólo se permite un simulacro en curso por cuenta; si ya existe, se retoma.
+Envía cada respuesta una sola vez. No se muestran soluciones ni aciertos hasta
+que completes todas las preguntas, finalices con confirmación o venza el tiempo.
+Puedes escuchar las instrucciones; no se ofrecen pistas, pizarra ni calculadora.
+El tiempo sigue al salir y el servidor decide si aún admite respuestas.
+Al finalizar, lo no respondido cuenta como cero aciertos. Se conserva lo enviado.
+Los resultados se muestran en el historial y no son una calificación escolar.
+
+5. TECLADO Y LECTURA EN VOZ ALTA
+Tab y Mayús + Tab recorren controles; Enter/Espacio los activan. En el menú,
+las flechas arriba/abajo cambian el foco e Inicio/Fin van a los extremos.
+En celular, Escape cierra el menú y devuelve el foco a su botón. Los diálogos
+pueden cerrarse con Escape. Ctrl + K abre la búsqueda de pantallas y lecciones.
+
+El altavoz superior lee las instrucciones y la pregunta visible. Incluye pausa,
+reanudación y detención. Usa una voz en español cuando el navegador dispone
+de ella; si la reproducción falla, se informa en pantalla. La disponibilidad
+y la necesidad de Internet para cada voz dependen del navegador y del sistema.
+La lectura no activa la música de fondo ni descubre soluciones ocultas.
+Los recorridos con teclado se comprobaron en Chromium; no se realizó una
+certificación completa con todos los lectores de pantalla ni se escuchó voz real.
+
+6. COMPARACIÓN DOCENTE
+Abre Comparar actividades con una cuenta docente o administradora. Elige un
+grupo y después dos actividades distintas de ese grupo. Los resultados se
+expresan como porcentaje de puntos, respetando el peso de cada pregunta.
+Los promedios y su cambio se calculan sólo con alumnos que terminaron ambas
+entregas. Un registro ausente se muestra como — y no se reemplaza por cero.
+La tabla individual incluye a los integrantes actuales del grupo.
+Las dos actividades pueden tener temas o dificultad distintos; revisa también
+sus preguntas antes de interpretar el cambio.
+
+ARCHIVOS DE ESTA AMPLIACIÓN
+estudio.js: borradores y simulacros en servidor.
+public/assets/estudio.js: calculadora, pizarra, recuperación, lectura y comparación.
+public/assets/estudio.css: estilos de las herramientas.
+pruebas/estudio.cjs: validación de guardado, permisos, tiempo, cálculo y comparación.

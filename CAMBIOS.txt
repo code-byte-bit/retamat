@@ -1,0 +1,97 @@
+RETAMAT 2.4 — SEIS MEJORAS DE ESTUDIO
+
+- Borradores personales por cuenta, actividad y pregunta. Guardado en MySQL,
+  versión para detectar conflictos y copia local mientras falta confirmación.
+- Pizarra con dibujo SVG, colores, grosor, deshacer y alternativa escrita.
+  Se recupera junto al borrador. Calculadora aritmética sin eval ni código remoto.
+- Biblioteca: seis ejemplos, tres guías propias y tres enlaces a videos externos
+  de Khan Academy, con filtros por tema, tipo y búsqueda.
+- Simulacros: temas, nivel, 3–10 preguntas y 1–90 minutos. Tiempo del servidor,
+  una sesión activa por cuenta y soluciones ocultas hasta finalizar o vencer.
+- Navegación de menú con teclado y foco al cerrar con Escape; lectura opcional
+  de instrucciones con controles de pausa, reanudación y detención.
+- Comparación docente de dos actividades del mismo grupo: porcentajes ponderados
+  y cambio por alumno. Los promedios se basan en alumnos con ambas entregas.
+
+La pizarra/calculadora y los borradores son para prácticas personales; no se
+habilitan en evaluaciones, exámenes, tareas asignadas o desafíos competitivos.
+El service worker sólo guarda recursos públicos. La copia de recuperación de
+borradores usa almacenamiento local del navegador separado de esa caché y se
+elimina al confirmar el guardado o al cerrar sesión después de guardar.
+
+RETAMAT 2.3 — APRENDIZAJE GUIADO
+
+- Tres pistas progresivas por pregunta de práctica personal. La petición
+  se valida en servidor y su avance se conserva en MySQL.
+- Repaso inteligente: tres ejercicios nuevos de los temas y niveles de
+  hasta tres errores recientes. No modifica las entregas originales.
+- Reto diario: tres preguntas, dificultad adaptada y un reto por estudiante
+  y fecha del centro de México; reutiliza el intento incluso si ya terminó.
+- Mis logros: ocho insignias estudiantiles basadas en avances visibles.
+  Las rachas históricas permanecen reconocidas al dejar de practicar.
+- Explicaciones de las 18 lecciones con pasos, reproducción, pausa y
+  navegación manual; diagramas de equilibrio, fracciones, áreas y círculos.
+  Respeta la reducción de movimiento. Las lecciones editadas usan sus propios
+  pasos y no mezclan diagramas numéricos de un ejemplo anterior.
+- Seguimiento docente por alumno/tema: vencidas, pendientes, aciertos,
+  última respuesta de aula y lección sugerida para temas con refuerzo.
+- Manifest, iconos y service worker para instalar RETAMAT. La caché sólo
+  contiene recursos públicos; no guarda cuentas, API, exámenes o adjuntos.
+  Sin servidor aparece una pantalla para volver a conectarse.
+
+No agrega tablas ni dependencias. Se conserva .env, MySQL y el diseño 2.2.
+
+RETAMAT 2.2 — 16 de octubre de 2026
+
+REDISEÑO VISUAL
+- Nueva identidad: verde profundo, lima y superficies claras.
+- Fuente Manrope incluida para funcionar sin conexión a servicios de fuentes.
+- Acceso y registro renovados, con las opciones de estudiante y docente.
+- Inicio con siguiente lección/práctica, meta circular, indicadores y agenda.
+- Ilustraciones SVG de álgebra, fracciones y geometría; tarjetas de lecciones.
+- Menú con desplazamiento propio, formularios, tablas, diálogos y actividades.
+- Ajustes para celular, modo oscuro, texto grande y alto contraste.
+- Se conserva la conexión MySQL, las cuentas y todas las funciones de 2.1.
+- No cambia el esquema de la base de datos ni la configuración .env.
+
+RETAMAT 2.1 — 16 de octubre de 2026
+
+Se agregan seis mejoras a la misma interfaz:
+- Borradores revisables de exámenes, control de versiones entre pestañas,
+  guardado antes de navegar y entrega definitiva con confirmación.
+- Migración de exámenes pendientes anteriores conservando sus respuestas.
+- Recuperación por correo SMTP con tokens de 30 minutos, uso único,
+  invalidación de sesiones y límite de solicitudes.
+- Avisos y salas en vivo mediante SSE, con reconexión y protección del texto.
+- PDF de progreso, grupos y actividades, fuentes incluidas y paginación.
+- Archivos PDF e imágenes de instrucciones y evidencias guardados en MySQL.
+- Vista previa como estudiante sin crear entregas ni consumir intentos.
+
+Se agregan archivos y recuperaciones; las tablas anteriores se conservan.
+Las dependencias nuevas se instalan con npm install o INICIAR_RETAMAT.bat.
+La configuración SMTP es opcional y se documenta sin incluir credenciales.
+
+Historial anterior:
+
+RETAMAT 2.0 — 16 de octubre de 2026
+
+Se recupera la interfaz original y se conecta al servidor y a MySQL.
+Se conservan sin cambios el CSS, el audio y el generador matemático originales.
+Se eliminan las pantallas simplificadas y las cuentas de demostración.
+
+El servidor ejecuta el modelo educativo, valida permisos, corrige respuestas y
+comprueba tiempos. Filtra datos privados y oculta soluciones todavía no
+publicadas. Las transacciones guardan contenido y sus tablas de resultados.
+Los comandos identificados evitan duplicados cuando se reintenta un envío.
+
+Se integran una vez los datos de la versión MySQL anterior, manteniendo IDs y
+respuestas. Los respaldos JSON no incluyen contraseñas reales. La importación
+combina contenido sin reemplazar cuentas, contraseñas, roles ni miembros.
+
+Se adapta el autoguardado de apuntes al servidor: conserva cambios mientras
+una petición está pendiente y muestra conflictos y fallos de red.
+Un login correcto reinicia el contador de intentos fallidos.
+
+Se agregan package.json, package-lock.json, preparación de tablas, archivo de
+inicio Windows y guía. Las API educativas anteriores quedan retiradas en
+producción; su modo de compatibilidad se usa solo en pruebas de regresión.

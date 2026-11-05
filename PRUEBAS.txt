@@ -1,0 +1,70 @@
+VERIFICACIÓN RETAMAT 2.4
+
+172 pruebas automáticas aprobadas en la batería completa; cero fallos.
+33 comprobaciones del controlador de música y archivo WAV aprobadas.
+
+Se verificaron servidor Express, autenticación, permisos, MySQL simulado,
+transacciones, migración de registros y exámenes antiguos, borradores,
+entrega y caducidad, reintentos sin duplicados y conflictos entre pestañas.
+
+Las nuevas pruebas incluyen archivos privados, límites y descarga íntegra;
+reportes PDF de una y varias páginas; vista previa sin crear entregas;
+SSE con eventos HTTP reales y revocación de sesión; enlaces de recuperación
+vencidos y de uso único, fallo de correo y límite de solicitudes.
+
+La interfaz se ejercitó con DOM simulado y conexiones HTTP locales:
+publicar y previsualizar examen, adjuntar instrucciones, unirse al grupo,
+guardar, corregir y entregar, recibir avisos y recuperar la contraseña.
+
+Los PDF fueron renderizados y revisados, incluyendo nombres con acentos,
+títulos largos y un reporte de seis páginas. Se incluyen las fuentes y licencia.
+El generador matemático, controlador y audio se conservan. El diseño se
+aplica mediante diseno.css, después de las hojas de estilos anteriores.
+
+Entorno: Node.js 24 y dependencias de package-lock.json.
+No se utilizó una instancia real de MySQL ni un proveedor SMTP real.
+El diseño se comprobó en Chromium real: acceso, registro, inicio de estudiante
+y docente, lecciones, práctica, menús y pantallas administrativas. Se revisaron
+64 estados/pantallas en anchos de 390, 768, 1280 y 1440 píxeles, con modo
+oscuro y texto muy grande/alto contraste. No hubo errores de JavaScript ni
+desbordamiento horizontal de la página. Las tablas amplias pueden desplazarse
+dentro de su contenedor. Los datos de esta revisión fueron de prueba y no se
+incluyen cuentas de demostración en el proyecto.
+No se verificó la reproducción sonora con escucha real.
+Comprueba /probar-conexion, el sonido y SMTP en tu computadora.
+
+Repetir: npm install y npm test.
+
+VERIFICACIÓN DE APRENDIZAJE 2.3
+Se verificaron fechas del centro de México, idempotencia concurrente, privacidad
+y persistencia de pistas al reinicializar el servicio; preguntas obsoletas,
+restricciones en exámenes/diagnóstico, variantes nuevas y nivel diez; logros
+con rachas históricas, metadatos inválidos y seguimiento dentro de los permisos.
+
+Se recorrieron 19 estados adicionales en Chromium real: reto diario y retorno
+al mismo resultado, pistas sin borrar la respuesta escrita, repaso inteligente,
+insignias, seis explicaciones, reproducción/pausa, modo oscuro y reducción de
+movimiento, seguimiento con datos de aula, instalación y pantalla sin servidor.
+No hubo errores JavaScript ni desbordamiento horizontal en esos recorridos.
+El navegador registró el service worker y sólo almacenó 21 recursos públicos;
+se simuló la pérdida de red y se comprobó la ayuda y el retorno al servidor.
+No se realizó una instalación nativa manual en Windows o Android.
+Los datos de prueba se mantienen fuera del proyecto entregado.
+
+VERIFICACIÓN DE ESTUDIO 2.4
+Nuevas pruebas: precedencia y rechazo de código en calculadora; borradores
+parciales sin calificar, privacidad, límites, idempotencia, versión, persistencia
+al reiniciar y limpieza al responder; simulacro con reloj de servidor, ayudas
+bloqueadas, resultados ocultos, fin anticipado, vencimiento y pesos comparables.
+
+Se revisaron diez estados adicionales en Chromium (1440 y 390 píxeles),
+incluidos modo oscuro y simulacros. También se comprobaron pizarra dibujada,
+calculadora, recarga desde MySQL, recuperación de copia local sin confirmación,
+conflicto entre pestañas sin pérdida silenciosa, filtros, diálogo con Escape,
+menú con teclado y regreso del foco, simulacro sin revelar soluciones y
+comparación ponderada con datos reales de la base simulada de pruebas.
+No hubo errores JavaScript ni desbordamiento horizontal en esos recorridos.
+La lectura en voz alta se probó con un sintetizador simulado: se verificaron
+texto, pausa, reanudación y detención; no se comprobó el sonido con escucha.
+La pizarra se probó con eventos de puntero; no con hardware táctil físico.
+Los datos de revisión son de prueba y no se incluyen como cuentas demo.

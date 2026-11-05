@@ -1,0 +1,122 @@
+RETAMAT 2.4 — SEIS MEJORAS DE ESTUDIO
+
+- Borradores personales por cuenta, actividad y pregunta. Guardado en MySQL,
+  versión para detectar conflictos y copia local mientras falta confirmación.
+- Pizarra con dibujo SVG, colores, grosor, deshacer y alternativa escrita.
+  Se recupera junto al borrador. Calculadora aritmética sin eval ni código remoto.
+- Biblioteca: seis ejemplos, tres guías propias y tres enlaces a videos externos
+  de Khan Academy, con filtros por tema, tipo y búsqueda.
+- Simulacros: temas, nivel, 3–10 preguntas y 1–90 minutos. Tiempo del servidor,
+  una sesión activa por cuenta y soluciones ocultas hasta finalizar o vencer.
+- Navegación de menú con teclado y foco al cerrar con Escape; lectura opcional
+  de instrucciones con controles de pausa, reanudación y detención.
+- Comparación docente de dos actividades del mismo grupo: porcentajes ponderados
+  y cambio por alumno. Los promedios se basan en alumnos con ambas entregas.
+
+La pizarra/calculadora y los borradores son para prácticas personales; no se
+habilitan en evaluaciones, exámenes, tareas asignadas o desafíos competitivos.
+El service worker sólo guarda recursos públicos. La copia de recuperación de
+borradores usa almacenamiento local del navegador separado de esa caché y se
+elimina al confirmar el guardado o al cerrar sesión después de guardar.
+
+RETAMAT 2.3 — APRENDIZAJE GUIADO
+
+- Tres pistas progresivas por pregunta de práctica personal. La petición
+  se valida en servidor y su avance se conserva en MySQL.
+- Repaso inteligente: tres ejercicios nuevos de los temas y niveles de
+  hasta tres errores recientes. No modifica las entregas originales.
+- Reto diario: tres preguntas, dificultad adaptada y un reto por estudiante
+  y fecha del centro de México; reutiliza el intento incluso si ya terminó.
+- Mis logros: ocho insignias estudiantiles basadas en avances visibles.
+  Las rachas históricas permanecen reconocidas al dejar de practicar.
+- Explicaciones de las 18 lecciones con pasos, reproducción, pausa y
+  navegación manual; diagramas de equilibrio, fracciones, áreas y círculos.
+  Respeta la reducción de movimiento. Las lecciones editadas usan sus propios
+  pasos y no mezclan diagramas numéricos de un ejemplo anterior.
+- Seguimiento docente por alumno/tema: vencidas, pendientes, aciertos,
+  última respuesta de aula y lección sugerida para temas con refuerzo.
+- Manifest, iconos y service worker para instalar RETAMAT. La caché sólo
+  contiene recursos públicos; no guarda cuentas, API, exámenes o adjuntos.
+  Sin servidor aparece una pantalla para volver a conectarse.
+
+No agrega tablas ni dependencias. Se conserva .env, MySQL y el diseño 2.2.
+
+RETAMAT 2.2 — NUEVO DISEÑO
+
+El acceso, el registro, el inicio y las tarjetas tienen una nueva identidad.
+La fuente Manrope viene incluida. Los gráficos e ilustraciones funcionan
+sin Internet, igual que la música opcional.
+
+En el inicio del estudiante, el botón principal retoma una práctica pendiente
+o abre una lección recomendada. El anillo muestra la meta de los últimos siete
+días. Los indicadores y la gráfica usan tus respuestas guardadas; una cuenta
+nueva empieza con ceros. El docente tiene accesos a grupos, preguntas y reportes.
+
+Puedes cambiar al modo oscuro con el botón de luna. En Perfil y ajustes
+siguen disponibles texto grande, alto contraste y reducción de animaciones.
+
+Para actualizar: conserva .env, reemplaza los archivos del proyecto, abre
+INICIAR_RETAMAT.bat y recarga http://127.0.0.1:3001 con Ctrl + F5.
+
+RETAMAT 2.1 — CÓMO USAR LAS SEIS MEJORAS
+
+1. EXÁMENES REVISABLES
+Abre un examen y responde las preguntas en el orden que prefieras. Guardar
+borrador conserva tus respuestas sin entregar; puedes corregirlas. Antes de
+salir mediante el menú se guarda el borrador, si las respuestas son válidas.
+Revisar y entregar muestra cuántas preguntas faltan y pide confirmar. Después
+de entregar ya no se edita. Las preguntas pendientes valen cero. Si vence el
+tiempo, se entrega lo guardado. Las respuestas que todavía no guardaste no
+se pueden recuperar al vencer el plazo o cerrar la pestaña.
+Los exámenes pendientes anteriores se convierten conservando sus respuestas.
+Los exámenes que ya estaban entregados se conservan sin reabrirse.
+
+2. RECUPERAR CONTRASEÑA POR CORREO
+Pulsa ¿Olvidaste tu contraseña? en el acceso. El administrador debe configurar
+su servidor SMTP según CONFIGURAR_CORREO.txt. El enlace dura 30 minutos y se
+usa una sola vez. La recuperación administrativa anterior sigue disponible.
+
+3. AVISOS EN VIVO
+Al iniciar sesión se mantiene una conexión de eventos con el servidor.
+Las nuevas tareas, comentarios y avisos actualizan el indicador de la campana.
+Las salas actualizan conversación y clasificación sin pulsar Actualizar.
+El texto que estás escribiendo en el chat se conserva durante la actualización.
+Los apuntes, formularios y borradores de examen no se reemplazan mientras se
+editan. Si la conexión falla, la app intenta reconectarse y consulta cambios.
+Se admiten hasta cinco pestañas con avisos en vivo por cuenta.
+
+4. REPORTES PDF
+Busca Descargar PDF en Mi progreso, Reporte de alumnos, el detalle del grupo
+y las actividades. El PDF incluye nombre, fecha y paginación. En grupos se
+respeta el filtro de grupo seleccionado. Los filtros de estado del reporte
+web no limitan el PDF: el documento incluye el seguimiento completo del grupo.
+No se publican las soluciones ni calificaciones de exámenes aún restringidos.
+
+5. ARCHIVOS ADJUNTOS
+El docente pulsa Archivos en una tarea o examen para agregar instrucciones.
+Los alumnos del grupo pueden descargarlas. En una tarea, el estudiante pulsa
+Mis evidencias para adjuntar su trabajo dentro del plazo, incluso si ya
+terminó las preguntas. Las evidencias son privadas para ese estudiante,
+su docente y el administrador. No se admiten evidencias de alumno en exámenes.
+Formatos: PDF, PNG, JPEG y WebP; hasta 5 MB por archivo y cinco archivos por
+actividad o entrega. Los archivos se descargan, no se ejecutan en la app.
+Las evidencias complementan los ejercicios; no cambian la calificación
+automática ni sustituyen la entrega de respuestas.
+
+6. VISTA PREVIA DEL ESTUDIANTE
+Desde el grupo, el docente pulsa Vista como alumno en una actividad publicada.
+Puede recorrer sus preguntas y revisar instrucciones, formato y puntajes.
+Las soluciones quedan ocultas. La simulación no crea entregas, no consume
+intentos y no modifica el trabajo de ningún estudiante.
+
+ACTUALIZAR
+Detén el servidor, reemplaza el contenido del ZIP en tu carpeta servidor y
+conserva .env. Ejecuta npm install y npm start, o usa INICIAR_RETAMAT.bat,
+que instala las dependencias si faltan. Abre http://127.0.0.1:3001 y pulsa
+Ctrl + F5. Se agregan las tablas archivos y recuperaciones sin borrar datos.
+
+RESPALDOS
+Los archivos binarios se guardan en MySQL. El JSON del panel conserva su
+referencia y metadatos; para recuperar el contenido de los adjuntos necesitas
+un respaldo completo de MySQL, incluida la tabla archivos. El JSON por sí
+solo no traslada los archivos a otra base.

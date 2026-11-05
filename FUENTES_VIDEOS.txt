@@ -1,0 +1,15 @@
+RETAMAT — VIDEOS EXTERNOS DE APOYO
+
+Autor/proveedor: Khan Academy. Enlaces a sus páginas oficiales en español.
+Los títulos identifican el recurso. No se reproducen transcripciones ni se
+incluyen archivos de video de terceros. Requieren Internet y se abren aparte.
+Verificados al preparar RETAMAT 2.4 (16 de octubre de 2026, hora de México).
+
+Álgebra: Ecuaciones de suma y resta de un paso
+https://es.khanacademy.org/math/cc-sixth-grade-math/cc-6th-equations-and-inequalities/cc-6th-one-step-add-sub-equations/v/adding-and-subtracting-the-same-thing-from-both-sides
+
+Fracciones: Sumar fracciones con denominadores comunes
+https://es.khanacademy.org/math/arithmetic-home/arith-review-fractions/adding-subtracting-frac/v/adding-fractions-with-like-denominators
+
+Geometría: Perímetro y área
+https://es.khanacademy.org/math/1-secundaria-pe/xc734090530553e83%3Ageometria-formas-bidimensionales-y-tridimensionales/xc734090530553e83%3Aintroduccion-al-perimetro-y-area-area-de-un-triangulo/v/perimeter-and-area-basics

@@ -1,0 +1,26 @@
+{
+  "name": "retamat",
+  "version": "2.4.0",
+  "private": true,
+  "description": "RETAMAT: plataforma educativa con diseño renovado y servidor MySQL",
+  "main": "servidor.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node servidor.js",
+    "setup": "node preparar.js",
+    "test": "node --test pruebas/login.cjs pruebas/aula.cjs pruebas/lecciones.cjs pruebas/grupos.cjs pruebas/actividades.cjs pruebas/admin.cjs pruebas/recuperacion.cjs pruebas/integracion.cjs pruebas/interfaz-integrada.cjs pruebas/mejoras.cjs pruebas/aprendizaje.cjs pruebas/estudio.cjs && node pruebas/verificar-musica-original.cjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "mysql2": "^3.15.3",
+    "nodemailer": "^10.1.2",
+    "pdfkit": "^0.20.2"
+  },
+  "devDependencies": {
+    "jsdom": "^27.0.1"
+  }
+}

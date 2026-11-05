@@ -1,0 +1,66 @@
+RETAMAT 2.3 — DÓNDE USAR LAS NUEVAS FUNCIONES
+
+ESTUDIANTE
+1. En una práctica personal, pulsa Necesito una pista. Puedes descubrir hasta
+   tres estrategias, una a una. Pedir una pista conserva la respuesta escrita.
+   Su avance se guarda en tu cuenta. No se ofrecen pistas en evaluaciones,
+   tareas asignadas, exámenes ni salas competitivas.
+2. En Cuaderno de errores, pulsa Repaso con ejercicios nuevos. También aparece
+   Ejercicios nuevos de refuerzo en los resultados de una actividad con errores.
+   Prepara tres preguntas del mismo tema/nivel de hasta tres errores recientes.
+   El repaso dirigido anterior sigue disponible para repetir preguntas exactas.
+   Los exámenes con resultados todavía ocultos no se utilizan.
+3. Abre Reto diario desde el menú o el inicio. El servidor elige el nivel usando
+   tus respuestas visibles y guarda un único reto por cuenta y fecha del centro
+   de México (America/Mexico_City). Puedes salir y retomarlo. No tiene cronómetro.
+   Al terminar puedes revisar su resultado; al día siguiente aparece otro.
+4. En Mis logros encontrarás ocho insignias con criterio y avance: primera
+   práctica, diez respuestas, veinte aciertos, tres lecciones dominadas,
+   primer reto diario, siete fechas con reto, tres días seguidos y tres temas.
+   Dominar una lección requiere terminar su práctica con al menos 80% de aciertos.
+   Sólo se consideran resultados publicados. Las insignias se calculan de los
+   registros conservados; no se inventan logros al crear una cuenta.
+5. En cualquier lección pulsa Ver explicación animada. Usa Anterior/Siguiente,
+   Reproducir o Pausar. Cada paso automático dura tres segundos. Se incluyen
+   ejemplos visuales de ecuaciones, fracciones, rectángulos, círculos y cilindros.
+   Reducir animaciones oculta la reproducción automática y conserva los pasos
+   manuales. Si el docente edita una lección, la explicación usa su contenido.
+
+DOCENTE Y ADMINISTRADOR
+6. Abre Seguimiento docente. Puedes filtrar por grupo, revisar alumnos y ver
+   qué temas necesitan refuerzo. Se usan exclusivamente actividades de aula
+   dentro de tus permisos. No se muestran prácticas personales ajenas.
+   Un tema requiere al menos tres respuestas y menos de 60% de aciertos para
+   sugerir refuerzo. También se señalan entregas vencidas y promedios menores
+   a seis. La lección sugerida se aproxima al nivel medio de ese tema.
+   No se envían mensajes automáticos ni se asignan tareas sin tu intervención.
+   En cuentas docentes/administradoras se muestran seis insignias personales;
+   las dos insignias de reto diario corresponden sólo a estudiantes.
+
+INSTALAR RETAMAT
+7. En el inicio o en Guía de uso, pulsa Instalar RETAMAT. El navegador ofrece
+   su ventana de instalación cuando está disponible. De lo contrario se
+   muestra cómo buscar la opción de instalar o añadir al inicio en su menú.
+   La app instalada abre RETAMAT en una ventana propia.
+   WAMP/MySQL y el servidor Node siguen siendo necesarios. La instalación
+   no convierte las actividades en ejercicios sin servidor.
+   Si el servidor no responde, se muestra una pantalla de ayuda. Tus respuestas
+   confirmadas siguen en MySQL. Las respuestas aún no enviadas no se guardan
+   sin conexión. La caché sólo guarda CSS, JavaScript público, fuentes, iconos
+   y la ayuda; nunca almacena sesiones, API, archivos privados o informes.
+   La instalación local se usa en esta computadora. Para acceder desde otro
+   dispositivo hace falta publicar/configurar el servidor con HTTPS; el servidor
+   actual escucha exclusivamente en 127.0.0.1 y no expone el equipo a la red.
+   Si instalas RETAMAT en un equipo compartido, cierra sesión al terminar.
+
+ACTUALIZAR
+Detén Node con Ctrl + C; reemplaza el contenido del proyecto conservando .env.
+Enciende MySQL, abre INICIAR_RETAMAT.bat y recarga con Ctrl + F5.
+No necesitas ejecutar scripts SQL adicionales para estas mejoras.
+
+ARCHIVOS PRINCIPALES
+aprendizaje.js: operaciones de aprendizaje en el servidor.
+public/assets/aprendizaje.js: criterios, pistas, logros y seguimiento.
+public/assets/aprendizaje.css: componentes de aprendizaje.
+public/assets/interfaz.js: pantallas, explicaciones y controles.
+public/assets/instalar.js y public/sw.js: instalación y recursos públicos.
