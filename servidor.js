@@ -81,10 +81,11 @@ function createApp(conexion, {now = Date.now, legacy = false, mailer = undefined
     res.set('X-Content-Type-Options','nosniff');
     res.set('X-Frame-Options','DENY');
     // No se admiten formularios externos ni peticiones desde otro origen.
+   // No se admiten formularios externos ni peticiones desde otro origen.
+    const originOk = !req.headers.origin || req.headers.origin === 'http://127.0.0.1:3001' || (req.headers.host && req.headers.origin.includes(req.headers.host));
     if (req.method === 'POST' &&
-        ((req.headers.origin && req.headers.origin !== 'http://127.0.0.1:3001') ||
-         req.headers['sec-fetch-site'] === 'cross-site' || !req.is('application/json'))) {
-      return res.status(403).json({mensaje:'Abre el formulario en http://127.0.0.1:3001 e inténtalo de nuevo.'});
+        (!originOk || req.headers['sec-fetch-site'] === 'cross-site' || !req.is('application/json'))) {
+      return res.status(403).json({mensaje:'Abre el formulario en la aplicación e inténtalo de nuevo.'});
     }
     next();
   });
