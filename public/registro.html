@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RETAMAT · Registro en MySQL</title><style>
+*{box-sizing:border-box}body{margin:0;padding:36px 18px;background:#f3f6fc;color:#1d2943;font:16px/1.55 Arial,sans-serif}main{max-width:520px;margin:0 auto;background:white;border:1px solid #e1e7f1;padding:30px;border-radius:20px}h1{font-size:26px;line-height:1.2}label{display:block;margin-top:17px;font-weight:bold}input,select,button{font:inherit;padding:12px;width:100%;border:1px solid #9ba8bc;border-radius:8px}input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid #7959e8;outline-offset:3px}button{background:#315ff4;color:white;border:none;cursor:pointer;margin-top:22px;font-weight:bold}button:disabled{opacity:.6;cursor:wait}.note{font-size:14px;color:#55617a}#status{white-space:pre-wrap;overflow-wrap:anywhere;font-weight:bold}#status[data-state=error]{color:#ad2534}#status[data-state=ok]{color:#12715f}a{color:#244bc8}
+</style></head><body><main><p>RETAMAT · CONEXIÓN CON MYSQL</p><h1>Crea una cuenta de prueba</h1><p>Esta cuenta se guardará en la tabla <strong>usuarios</strong> de MySQL.</p><p class="note">Estamos comprobando el registro del servidor. Ya puedes iniciar sesión con las cuentas guardadas aquí. El aula del estudiante incluye una evaluación inicial guardada en MySQL. Las cuentas antiguas del navegador no se importan automáticamente.</p><form id="register"><label for="name">Nombre completo</label><input id="name" name="name" required minlength="2" maxlength="80" autocomplete="name"><label for="email">Correo electrónico</label><input id="email" name="email" type="email" required maxlength="150" autocomplete="email"><label for="password">Contraseña nueva</label><input id="password" name="password" type="password" required minlength="10" maxlength="128" autocomplete="new-password"><p class="note">De 10 a 128 caracteres, con letras y números. No necesitas usar la contraseña de MySQL.</p><label for="role">Tipo de cuenta</label><select id="role" name="role"><option value="student">Estudiante</option><option value="teacher">Docente</option></select><button id="send" type="submit">Crear cuenta en MySQL</button></form><p id="status" role="status" aria-live="polite"></p><a href="/login">Iniciar sesión</a><br><a href="/probar-conexion">Comprobar conexión con MySQL</a></main><script>
+const form=document.getElementById('register'),button=document.getElementById('send'),status=document.getElementById('status');
+form.addEventListener('submit',async event=>{
+ event.preventDefault();button.disabled=true;status.dataset.state='';status.textContent='Guardando la cuenta…';
+ try{
+  const data=Object.fromEntries(new FormData(form));
+  const response=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  const result=await response.json();
+  if(!response.ok)throw Error(result.mensaje || 'No se pudo crear la cuenta.');
+  status.dataset.state='ok';status.textContent='Cuenta creada en MySQL para '+result.user.email+'.\nPuedes comprobarla en Workbench. Abre Iniciar sesión para entrar con tu cuenta.';form.reset();
+ }catch(error){status.dataset.state='error';status.textContent=error.message==='Failed to fetch'?'No se pudo contactar al servidor. Comprueba que node servidor.js siga ejecutándose.':error.message;}
+ finally{button.disabled=false;}
+});
+</script></body></html>
