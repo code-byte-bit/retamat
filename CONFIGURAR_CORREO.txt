@@ -1,42 +1,28 @@
-RETAMAT — RECUPERACIÓN POR CORREO
+RETAMAT — RECUPERACIÓN POR CORREO (CÓDIGO DE 6 DÍGITOS)
 
-Esta función utiliza un servidor SMTP de tu proveedor de correo. No necesitas
-configurarlo para usar las demás funciones de RETAMAT.
+Nota para el envío de correos en Render / .env:
+Asegúrate de tener configuradas las variables de entorno SMTP_USER (tu correo,
+por ejemplo de Gmail) y SMTP_PASSWORD (tu contraseña de aplicación de 16
+caracteres de Google) en tu servicio de Render o archivo .env para que los
+códigos salgan al instante.
 
-1. Abre el archivo .env junto a servidor.js. Conserva todas las variables DB_*.
-2. Agrega estas variables al final con los datos que te dé tu proveedor:
+Variables de entorno en Render (Environment) o en el archivo .env:
 
-APP_URL=http://127.0.0.1:3001
-SMTP_HOST=servidor-smtp-de-tu-proveedor
+SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=tu-cuenta-de-correo
-SMTP_PASSWORD=tu-clave-de-aplicacion
-MAIL_FROM=RETAMAT <tu-cuenta-de-correo>
+SMTP_USER=tu-correo@gmail.com
+SMTP_PASSWORD=xxxx xxxx xxxx xxxx
+MAIL_FROM=RETAMAT <tu-correo@gmail.com>
 
-3. Usa el puerto indicado por tu proveedor: 587 para STARTTLS o 465 para TLS.
-   Si el proveedor requiere una contraseña de aplicación, usa esa contraseña.
-   El remitente debe estar autorizado por la cuenta SMTP. No uses los valores
-   de ejemplo como credenciales reales.
-4. Ejecuta npm install para instalar las dependencias nuevas.
-5. Reinicia RETAMAT con Ctrl + C y npm start.
-6. Desde el acceso pulsa ¿Olvidaste tu contraseña?, escribe el correo de una
-   cuenta registrada y revisa su bandeja de entrada y spam.
+Cómo obtener la contraseña de aplicación en Gmail:
+1. Entra a tu Cuenta de Google -> Seguridad.
+2. Activa la Verificación en 2 pasos.
+3. Busca "Contraseñas de aplicaciones" (App passwords).
+4. Crea una clave para "RETAMAT" y copia los 16 caracteres en SMTP_PASSWORD.
 
-El enlace vence en 30 minutos y funciona una sola vez. Cambiar la contraseña
-invalida las sesiones y los demás enlaces de recuperación de esa cuenta.
-La API no muestra el enlace ni indica si un correo está registrado. Por eso
-la confirmación de solicitud no garantiza que se haya entregado un correo.
-Si el proveedor rechaza el envío, revisa el código SMTP en la terminal del
-servidor y los datos de .env. No se imprime la contraseña ni el token.
-
-La dirección 127.0.0.1 funciona en la computadora donde corre RETAMAT. Abre
-el enlace del correo en esa misma computadora. Esta entrega no configura
-alojamiento público ni acceso desde otras computadoras.
-
-Si SMTP_HOST o MAIL_FROM están vacíos, la app informa que el correo no está
-habilitado. El administrador conserva el restablecimiento desde Usuarios;
-el responsable del servidor también puede usar restablecer-clave.js.
-
-Nunca compartas tu .env ni subas credenciales de correo al código público.
-No hubo envíos reales de correo durante la verificación de esta entrega:
-las pruebas utilizaron un transporte de correo simulado.
+Funcionamiento:
+- Desde la pantalla de inicio de sesión, el usuario pulsa "Olvidé mi contraseña",
+  escribe su correo y recibe un código de verificación de 6 dígitos.
+- El código vence en 15 minutos y funciona una sola vez.
+- Al ingresar el correo, el código de 6 dígitos y la nueva contraseña, la cuenta
+  se actualiza de inmediato e invalida sesiones y códigos anteriores.

@@ -3,16 +3,19 @@ const derive=promisify(crypto.pbkdf2),digest=x=>crypto.createHash('sha256').upda
 const RECOVERY_TABLES=[['recuperaciones',`CREATE TABLE IF NOT EXISTS recuperaciones (id CHAR(64) PRIMARY KEY,usuario_id VARCHAR(100) NOT NULL,version_acceso INT UNSIGNED NOT NULL,vence_ms BIGINT UNSIGNED NOT NULL,usada BOOLEAN NOT NULL DEFAULT FALSE,INDEX idx_recuperacion_usuario (usuario_id),CONSTRAINT fk_recuperacion_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`]];
 const problem=(status,message)=>Object.assign(Error(message),{status});
 function mailConfig(env=process.env){
- const host=env.SMTP_HOST||(env.SMTP_USER&&env.SMTP_PASSWORD?'smtp.gmail.com':'');
- const from=env.MAIL_FROM||env.SMTP_USER||'';
- if(!host||!from)return null;
+ const user=(env.SMTP_USER||'').trim();
+ const rawPass=(env.SMTP_PASSWORD||'').trim();
+ const host=(env.SMTP_HOST||(user&&rawPass?'smtp.gmail.com':'')).trim();
+ const from=(env.MAIL_FROM||(user?`RETAMAT <${user}>`:'')).trim();
+ const pass=host.includes('gmail')?rawPass.replace(/\s+/g,''):rawPass;
+ if(!host||!from||(host.includes('gmail')&&(!user||!pass)))return null;
  let origin='http://127.0.0.1:3001';
  if(env.APP_URL){
   const base=new URL(env.APP_URL);if(!['http:','https:'].includes(base.protocol)||base.username||base.password||base.search||base.hash)throw Error('APP_URL no válida.');
   origin=base.origin;
  }
  const nodemailer=require('nodemailer'),port=Number(env.SMTP_PORT||587);
- return {base:origin,from,transport:nodemailer.createTransport({host,port,secure:port===465,requireTLS:port!==465,...(env.SMTP_USER?{auth:{user:env.SMTP_USER,pass:env.SMTP_PASSWORD||''}}:{}),connectionTimeout:10000,greetingTimeout:10000,socketTimeout:15000})};
+ return {base:origin,from,transport:nodemailer.createTransport({host,port,secure:port===465,requireTLS:port!==465,...(user?{auth:{user,pass}}:{}) ,connectionTimeout:10000,greetingTimeout:10000,socketTimeout:15000})};
 }
 function mountRecovery(app,pool,{now=Date.now,mailer=undefined}={}){
  const limits=new Map();
