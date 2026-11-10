@@ -103,7 +103,8 @@
     clearTimeout(notice.timeout);
     notice.timeout = setTimeout(() => t.hidden = true, 5000);
   }
-  function modal(title, body) {
+  function modal(title, body, keepOnHash = false) {
+    dialog.dataset.keepOnHash = keepOnHash ? 'yes' : '';
     dialog.innerHTML = `<header class="modal-heading"><div><p class="eyebrow">RETAMAT</p><h2 id="modal-title">${esc(title)}</h2></div>${btn(icon('close'), 'close', '', 'icon-button')}</header>${body}`;
     if (dialog.open) dialog.close();
     dialog.showModal();
@@ -112,6 +113,7 @@
     modal(title, `<form data-form="${type}" ${extra}>${body}<p class="form-error" hidden role="alert"></p><footer class="form-actions">${btn('Cancelar', 'close', '', 'secondary')}<button class="primary" type="submit">${label} ${icon('arrow')}</button></footer></form>`);
   }
   function go(next, id = '') {
+    dialog.dataset.keepOnHash = '';
     dialog.close();
     feedback = null;
     preview = null;
@@ -826,7 +828,10 @@
         const l = model.data().lessons.find((l) => l.id === id && l.active);
         if (!l) throw Error('Lección no disponible.');
         form('Elige tu manera de practicar', 'practice-format', `<p>${esc(l.title)}</p>` + select('Formato de las preguntas', 'format', [['number', 'Respuesta numérica'], ['choice', 'Opción múltiple'], ['boolean', 'Verdadero / falso'], ['image', 'Ejercicios con imagen'], ['mixed', 'Combinar los cuatro formatos']], 'mixed') + '<p class="small">Resolverás seis preguntas con procedimientos después de responder.</p>', `data-id="${esc(id)}"`, 'Comenzar práctica');
-      } else if (action === 'close') dialog.close();else if (action === 'auth') auth(id);else if (action === 'password') {
+      } else if (action === 'close') {
+        dialog.dataset.keepOnHash = '';
+        dialog.close();
+      } else if (action === 'auth') auth(id);else if (action === 'password') {
         const input = el.closest('form').elements.password;
         input.type = input.type === 'password' ? 'text' : 'password';
         el.setAttribute('aria-label', input.type === 'password' ? 'Mostrar contraseña' : 'Ocultar contraseña');
@@ -1020,7 +1025,7 @@
         location.hash='';
         auth();
         if(result.nextBackupCode){
-          modal('Contraseña restablecida',`<p>Tu contraseña fue actualizada correctamente.</p><p><strong>Nuevo código de recuperación:</strong></p><p class="invite-code large" style="font-size:24px;letter-spacing:3px;text-align:center">${esc(result.nextBackupCode)}</p><p class="small">Guarda este código en un lugar seguro. Tu código anterior ya no funciona.</p>`);
+          modal('Contraseña restablecida',`<p>Tu contraseña fue actualizada correctamente.</p><p><strong>Nuevo código de recuperación:</strong></p><p class="invite-code large" style="font-size:24px;letter-spacing:3px;text-align:center">${esc(result.nextBackupCode)}</p><p class="small">Guarda este código en un lugar seguro. Tu código anterior ya no funciona.</p><p><button type="button" class="primary" data-action="close">Entendido</button></p>`,true);
         } else {
           notice(result.mensaje);
         }
@@ -1054,7 +1059,7 @@
         go(pendingLesson ? 'lesson' : 'home', pendingLesson);
         render();
         if(reg?.backupCode){
-          modal('Guarda tu código de recuperación',`<p>¡Bienvenido a RETAMAT, <strong>${esc(b.name)}</strong>!</p><p>Si en algún momento olvidas tu contraseña, podrás recuperarla usando tu correo y este código:</p><p class="invite-code large" style="font-size:26px;font-weight:800;letter-spacing:4px;text-align:center">${esc(reg.backupCode)}</p><p class="small">Copia o anota este código en un lugar seguro. Funciona una sola vez; al usarlo se genera uno nuevo.</p><p><button type="button" class="primary" data-action="close">Entendido, continuar</button></p>`);
+          modal('Guarda tu código de recuperación',`<p>¡Bienvenido a RETAMAT, <strong>${esc(b.name)}</strong>!</p><p>Si en algún momento olvidas tu contraseña, podrás recuperarla usando tu correo y este código:</p><p class="invite-code large" style="font-size:26px;font-weight:800;letter-spacing:4px;text-align:center">${esc(reg.backupCode)}</p><p class="small">Copia o anota este código en un lugar seguro. Funciona una sola vez; al usarlo se genera uno nuevo.</p><p><button type="button" class="primary" data-action="close">Entendido, continuar</button></p>`,true);
         }
       } else if (type === 'search') {
         const result = searchItems(b.query)[0];
@@ -1287,7 +1292,7 @@
       if (location.hash !== target) {location.replace(target);return;}
     }
     if (model?.user()) {try {await model.refresh();} catch (e) {notice(e.message, true);}}
-    dialog.close();
+    if (dialog.dataset.keepOnHash !== 'yes') dialog.close();
     preview = null;
     feedback = null;
     document.documentElement.dataset.menu = 'closed';

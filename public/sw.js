@@ -1,5 +1,5 @@
 /* Solo recursos públicos. Nunca intercepta API, adjuntos o informes privados. */
-const CACHE='retamat-publico-2.4.0';
+const CACHE='retamat-publico-2.4.1';
 const PUBLIC_ASSETS=[
   '/offline.html','/assets/favicon.svg','/assets/icono-192.png','/assets/icono-512.png',
   '/assets/estilos.css','/assets/mejoras.css','/assets/diseno.css','/assets/aprendizaje.css',

@@ -41,7 +41,7 @@ function mountRecovery(app,pool,{now=Date.now}={}){
    const nextVersion=user.version_acceso+1;
    await db.execute('UPDATE usuarios SET hash_clave = ?, sal = ?, version_acceso = ? WHERE id = ?',[password,salt.toString('hex'),nextVersion,user.id]);
    await db.execute('UPDATE recuperaciones SET usada = TRUE WHERE usuario_id = ?',[user.id]);
-   await db.execute('INSERT INTO recuperaciones (id,usuario_id,version_acceso,vence_ms,usada,tipo) VALUES (?,?,?,?,FALSE,?)',[nextHashId,user.id,nextVersion,0,'backup']);
+   await db.execute('INSERT INTO recuperaciones (id,usuario_id,version_acceso,vence_ms,usada) VALUES (?,?,?,?,FALSE)',[nextHashId,user.id,nextVersion,0]);
    await db.execute('INSERT INTO auditoria (id,actor_id,usuario_id,accion,datos) VALUES (?,?,?,?,?)',[crypto.randomUUID(),null,user.id,'recuperacion_clave',JSON.stringify({origin:'codigo_respaldo'})]);
   });
   res.json({mensaje:'Contraseña actualizada. Inicia sesión con tu nueva contraseña.',nextBackupCode});
