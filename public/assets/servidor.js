@@ -77,6 +77,7 @@ window.RetamatServer = (() => {
     });
     model.recoveryStatus = () => request('/api/auth/recuperacion/estado',undefined,{anonymous:true});
     model.requestRecovery = email => request('/api/auth/recuperacion/solicitar',{email},{anonymous:true});
+    model.generateBackupCode = () => request('/api/auth/recuperacion/generar',{});
     model.applyRecovery = (payload,password) => request('/api/auth/recuperacion/restablecer',typeof payload==='object'&&payload!==null?payload:{token:payload,password},{anonymous:true});
     model.studentPreview = id => request('/api/espacio/vista-previa/'+encodeURIComponent(id));
     try { await request('/api/espacio',undefined,{anonymous:true}); } catch(error) { if (error.status !== 401) throw error; }

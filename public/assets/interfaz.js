@@ -103,7 +103,9 @@
     clearTimeout(notice.timeout);
     notice.timeout = setTimeout(() => t.hidden = true, 5000);
   }
-  function modal(title, body) {
+  function modal(title, body, persistent = false) {
+    if (persistent) dialog.dataset.persistent = 'yes';
+    else delete dialog.dataset.persistent;
     dialog.innerHTML = `<header class="modal-heading"><div><p class="eyebrow">RETAMAT</p><h2 id="modal-title">${esc(title)}</h2></div>${btn(icon('close'), 'close', '', 'icon-button')}</header>${body}`;
     if (dialog.open) dialog.close();
     dialog.showModal();
@@ -112,7 +114,7 @@
     modal(title, `<form data-form="${type}" ${extra}>${body}<p class="form-error" hidden role="alert"></p><footer class="form-actions">${btn('Cancelar', 'close', '', 'secondary')}<button class="primary" type="submit">${label} ${icon('arrow')}</button></footer></form>`);
   }
   function go(next, id = '') {
-    dialog.close();
+    if (dialog.dataset.persistent !== 'yes') dialog.close();
     feedback = null;
     preview = null;
     location.hash = '#' + next + (id ? '/' + encodeURIComponent(id) : '');
@@ -509,10 +511,10 @@
   function profile() {
     const u = user(),
       s = model.settings();
-    return `<div class="dashboard-columns"><section class="panel"><p class="eyebrow">TU ESPACIO PERSONAL</p><h2>Datos de tu cuenta</h2><form data-form="profile" class="spacer">${field('Nombre completo', 'name', u.name, 'text', 'required minlength="2" maxlength="80"')}<p class="small">${esc(u.email)} · ${roleLabel(u.role)}</p>${field('Contraseña actual (para cambiarla)', 'current', '', 'password', 'autocomplete="current-password"')}${field('Nueva contraseña (opcional)', 'next', '', 'password', 'minlength="10" autocomplete="new-password"')}<p class="form-error" hidden role="alert"></p><button class="primary">Guardar perfil</button></form></section><section class="panel"><p class="eyebrow">LECTURA Y COMODIDAD</p><h2>Tu manera de aprender</h2><form data-form="settings" class="spacer">${select('Tamaño del texto', 'font', [['normal', 'Normal'], ['large', 'Grande'], ['extra', 'Muy grande']], s.font || 'normal')}<label class="checkbox"><input name="contrast" type="checkbox" ${s.contrast ? 'checked' : ''}> Alto contraste</label><label class="checkbox"><input name="motion" type="checkbox" ${s.motion ? 'checked' : ''}> Reducir animaciones</label><p class="form-error" hidden role="alert"></p><button class="secondary">Guardar ajustes</button></form></section></div>`;
+    return `<div class="dashboard-columns"><section class="panel"><p class="eyebrow">TU ESPACIO PERSONAL</p><h2>Datos de tu cuenta</h2><form data-form="profile" class="spacer">${field('Nombre completo', 'name', u.name, 'text', 'required minlength="2" maxlength="80"')}<p class="small">${esc(u.email)} · ${roleLabel(u.role)}</p>${field('Contraseña actual (para cambiarla)', 'current', '', 'password', 'autocomplete="current-password"')}${field('Nueva contraseña (opcional)', 'next', '', 'password', 'minlength="10" autocomplete="new-password"')}<p class="form-error" hidden role="alert"></p><button class="primary">Guardar perfil</button></form><hr class="spacer"><p class="eyebrow">RECUPERACIÓN DE ACCESO</p><h3>Código de respaldo</h3><p class="small">Si olvidas tu contraseña o necesitas un nuevo código de recuperación de 8 caracteres, genéralo aquí y guárdalo en un lugar seguro.</p><p>${btn('Generar nuevo código de recuperación', 'generate-backup-code', '', 'secondary')}</p></section><section class="panel"><p class="eyebrow">LECTURA Y COMODIDAD</p><h2>Tu manera de aprender</h2><form data-form="settings" class="spacer">${select('Tamaño del texto', 'font', [['normal', 'Normal'], ['large', 'Grande'], ['extra', 'Muy grande']], s.font || 'normal')}<label class="checkbox"><input name="contrast" type="checkbox" ${s.contrast ? 'checked' : ''}> Alto contraste</label><label class="checkbox"><input name="motion" type="checkbox" ${s.motion ? 'checked' : ''}> Reducir animaciones</label><p class="form-error" hidden role="alert"></p><button class="secondary">Guardar ajustes</button></form></section></div>`;
   }
   function guide() {
-    const cards = [['01', 'Entra a tu espacio', 'Inicia sesión con tu cuenta o elige Estudiante o Docente al registrarte. Para probar varios roles, cierra sesión y entra con otra cuenta en RETAMAT.'], ['02', 'Comprende antes de resolver', 'Abre una lección, lee el ejemplo y guarda tus apuntes. La ruta reconoce dominio con una práctica completa de al menos 80%.'], ['03', 'Encuentra tu nivel', 'La evaluación inicial tiene diez preguntas. Cada acierto aumenta un nivel y cada error lo reduce, dentro de uno a diez.'], ['04', 'Organiza el aula', 'El docente crea grupos y publica tareas o exámenes. El alumno se inscribe con el código. Los exámenes tienen un solo intento por cuenta.'], ['05', 'Acompaña el avance', 'Revisa los procedimientos, el historial y los comentarios. Las salas comparten preguntas entre participantes inscritos antes de iniciar.'], ['06', 'Conserva tus datos', 'El administrador exporta y restaura respaldos. También puedes recuperar tu contraseña mediante un código enviado a tu correo.']];
+    const cards = [['01', 'Entra a tu espacio', 'Inicia sesión con tu cuenta o elige Estudiante o Docente al registrarte. Para probar varios roles, cierra sesión y entra con otra cuenta en RETAMAT.'], ['02', 'Comprende antes de resolver', 'Abre una lección, lee el ejemplo y guarda tus apuntes. La ruta reconoce dominio con una práctica completa de al menos 80%.'], ['03', 'Encuentra tu nivel', 'La evaluación inicial tiene diez preguntas. Cada acierto aumenta un nivel y cada error lo reduce, dentro de uno a diez.'], ['04', 'Organiza el aula', 'El docente crea grupos y publica tareas o exámenes. El alumno se inscribe con el código. Los exámenes tienen un solo intento por cuenta.'], ['05', 'Acompaña el avance', 'Revisa los procedimientos, el historial y los comentarios. Las salas comparten preguntas entre participantes inscritos antes de iniciar.'], ['06', 'Conserva tus datos', 'El administrador exporta y restaura respaldos. También puedes recuperar tu contraseña usando tu código de respaldo generado al registrarte.']];
     return `<div class="three-grid">${cards.map(([n, t, p]) => `<article class="panel guide-card"><span>${n}</span><h3>${t}</h3><p>${p}</p></article>`).join('')}</div><section class="panel spacer"><p class="eyebrow">SEIS HERRAMIENTAS PARA AVANZAR</p><h2>Cómo usar las mejoras</h2><ol class="solution-steps"><li>En una lección, pulsa Elegir formato para practicar con números, opciones, verdadero/falso, imágenes o una combinación.</li><li>El docente combina temas y selecciona preguntas al preparar una actividad. En Revisar preguntas puede asignar el puntaje de cada una. El resultado muestra puntos obtenidos y calificación sobre diez.</li><li>Calendario organiza las actividades por mes. Sus filtros muestran pendientes, entregadas, vencidas o cerradas. Abre una actividad para consultar su grupo.</li><li>Reporte de alumnos permite filtrar por grupo y localizar pendientes, entregas vencidas y temas con más errores. Puedes exportar el seguimiento.</li><li>Las recomendaciones del inicio y de Mi ruta usan hasta veinte respuestas visibles por tema. Refuerzan los temas con menos de 60% de aciertos cuando hay al menos tres respuestas.</li><li>El administrador restablece accesos desde Usuarios. Necesita su contraseña y debe escribir dos veces la nueva contraseña. La cuenta afectada vuelve a iniciar sesión.</li></ol><div class="quick-actions">${btn('Abrir calendario', 'nav', 'calendar', 'secondary')}${btn('Ver mi ruta', 'nav', 'path', 'secondary')}${manage() ? btn('Abrir seguimiento', 'nav', 'reports', 'secondary') : ''}</div></section><section class="panel spacer"><h2>Organiza tu trabajo</h2><ol class="solution-steps"><li>Mi plan de estudio reúne tu racha, las prácticas pendientes y las entregas de la semana. Cuenta únicamente respuestas con resultados visibles.</li><li>En las lecciones, el apunte se guarda al dejar de escribir. Si hay un conflicto entre pestañas, conserva una copia del texto y revisa la versión guardada antes de salir.</li><li>Mis apuntes permite buscar, exportar a TXT y eliminar con confirmación. La exportación contiene únicamente tus apuntes.</li><li>Filtra Mi progreso por tipo y estado; cada página muestra hasta veinte actividades. Su CSV conserva el historial completo.</li><li>El docente puede filtrar su banco de preguntas. El administrador puede buscar cuentas y consultar Estado de los datos para preparar respaldos.</li></ol><div class="quick-actions">${btn('Abrir mi plan', 'nav', 'plan', 'secondary')}${btn('Mis apuntes', 'nav', 'notes', 'secondary')}</div></section><section class="panel spacer"><h2>Repasa y organiza el aula</h2><ol class="solution-steps"><li>En Cuaderno de errores, elige un tema y crea un repaso. Se toman hasta seis preguntas equivocadas con resultados visibles. Si hay menos de tres, se agregan refuerzos del mismo tema y nivel.</li><li>Al terminar una actividad puedes repasar sus errores, revisar preguntas sin responder y exportar su detalle CSV. Un repaso es una práctica nueva y conserva tu entrega original.</li><li>El docente puede describir su grupo y pausar nuevas inscripciones con confirmación. Los alumnos inscritos conservan sus actividades y entregas.</li><li>Exportar lista CSV descarga los miembros del grupo. Publicar aviso crea una notificación para los miembros activos; podrán verla en su cuenta.</li></ol></section>`;
   }
 
@@ -826,7 +828,34 @@
         const l = model.data().lessons.find((l) => l.id === id && l.active);
         if (!l) throw Error('Lección no disponible.');
         form('Elige tu manera de practicar', 'practice-format', `<p>${esc(l.title)}</p>` + select('Formato de las preguntas', 'format', [['number', 'Respuesta numérica'], ['choice', 'Opción múltiple'], ['boolean', 'Verdadero / falso'], ['image', 'Ejercicios con imagen'], ['mixed', 'Combinar los cuatro formatos']], 'mixed') + '<p class="small">Resolverás seis preguntas con procedimientos después de responder.</p>', `data-id="${esc(id)}"`, 'Comenzar práctica');
-      } else if (action === 'close') dialog.close();else if (action === 'auth') auth(id);else if (action === 'password') {
+      } else if (action === 'close') {
+        const wasRegister = dialog.dataset.afterRegister === 'yes';
+        delete dialog.dataset.persistent;
+        delete dialog.dataset.afterRegister;
+        dialog.close();
+        if (wasRegister && user()) {
+          const pendingLesson = resumeNoteAccount();
+          go(pendingLesson ? 'lesson' : 'home', pendingLesson);
+          render();
+        }
+      } else if (action === 'finish-register') {
+        delete dialog.dataset.persistent;
+        delete dialog.dataset.afterRegister;
+        dialog.close();
+        const pendingLesson = resumeNoteAccount();
+        go(pendingLesson ? 'lesson' : 'home', pendingLesson);
+        render();
+      } else if (action === 'copy-backup') {
+        try {
+          await navigator.clipboard.writeText(id);
+          notice('Código de recuperación copiado.');
+        } catch {
+          notice('Copia manualmente el código: ' + id);
+        }
+      } else if (action === 'generate-backup-code') {
+        const res = await model.generateBackupCode();
+        modal('Tu nuevo código de recuperación', `<p>Guarda este código en un lugar seguro. Si olvidas tu contraseña, podrás cambiarla usando tu correo y este código:</p><p class="invite-code large" style="font-size:26px;font-weight:800;letter-spacing:4px;text-align:center">${esc(res.backupCode)}</p><p class="small">Tu código anterior quedó desactivado. Este código funciona una sola vez.</p><div class="quick-actions">${btn('Copiar código', 'copy-backup', res.backupCode, 'secondary')}${btn('Ya lo guardé', 'close', '', 'primary')}</div>`, true);
+      } else if (action === 'auth') auth(id);else if (action === 'password') {
         const input = el.closest('form').elements.password;
         input.type = input.type === 'password' ? 'text' : 'password';
         el.setAttribute('aria-label', input.type === 'password' ? 'Mostrar contraseña' : 'Ocultar contraseña');
@@ -1016,11 +1045,12 @@
         if(b.password!==b.repeat)throw Error('Las contraseñas no coinciden.');
         const result=await model.applyRecovery(f.dataset.token?{token:f.dataset.token,password:b.password}:{email:b.email,code:b.code,password:b.password});
         await model.logout();
+        delete dialog.dataset.persistent;
         dialog.close();
         location.hash='';
         auth();
         if(result.nextBackupCode){
-          modal('Contraseña restablecida',`<p>Tu contraseña fue actualizada correctamente.</p><p><strong>Nuevo código de recuperación:</strong></p><p class="invite-code large" style="font-size:24px;letter-spacing:3px;text-align:center">${esc(result.nextBackupCode)}</p><p class="small">Guarda este código en un lugar seguro. Tu código anterior ya no funciona.</p>`);
+          modal('Contraseña restablecida',`<p>Tu contraseña fue actualizada correctamente.</p><p><strong>Tu nuevo código de recuperación es:</strong></p><p class="invite-code large" style="font-size:26px;font-weight:800;letter-spacing:4px;text-align:center">${esc(result.nextBackupCode)}</p><p class="small">Guarda este código en un lugar seguro. Tu código anterior ya no funciona.</p><div class="quick-actions">${btn('Copiar código','copy-backup',result.nextBackupCode,'secondary')}${btn('Entendido, iniciar sesión','close','','primary')}</div>`,true);
         } else {
           notice(result.mensaje);
         }
@@ -1050,11 +1080,17 @@
         render();
       } else if (type === 'register') {
         const reg = await model.register(b.name, b.email, b.password, b.role);
-        const pendingLesson = resumeNoteAccount();
-        go(pendingLesson ? 'lesson' : 'home', pendingLesson);
-        render();
         if(reg?.backupCode){
-          modal('Guarda tu código de recuperación',`<p>¡Bienvenido a RETAMAT, <strong>${esc(b.name)}</strong>!</p><p>Si en algún momento olvidas tu contraseña, podrás recuperarla usando tu correo y este código:</p><p class="invite-code large" style="font-size:26px;font-weight:800;letter-spacing:4px;text-align:center">${esc(reg.backupCode)}</p><p class="small">Copia o anota este código en un lugar seguro. Funciona una sola vez; al usarlo se genera uno nuevo.</p><p><button type="button" class="primary" data-action="close">Entendido, continuar</button></p>`);
+          const card = document.querySelector('.auth-card');
+          if (card) {
+            card.innerHTML = `<p class="eyebrow">CUENTA CREADA CON ÉXITO</p><h2>Guarda tu código de recuperación</h2><p>¡Bienvenido a RETAMAT, <strong>${esc(b.name)}</strong>! Antes de entrar a tu espacio, copia o anota este código. Lo necesitarás si algún día olvidas tu contraseña:</p><p class="invite-code large" style="font-size:28px;font-weight:800;letter-spacing:4px;text-align:center;margin:18px 0">${esc(reg.backupCode)}</p><p class="small">Funciona una sola vez; al usarlo se generará uno nuevo automáticamente.</p><div class="quick-actions spacer">${btn('Copiar código','copy-backup',reg.backupCode,'secondary')}${btn('Ya guardé mi código, entrar a mi espacio '+icon('arrow'),'finish-register','','primary')}</div>`;
+          }
+          modal('Guarda tu código de recuperación',`<p>¡Bienvenido a RETAMAT, <strong>${esc(b.name)}</strong>!</p><p>Si en algún momento olvidas tu contraseña, podrás cambiarla usando tu correo y este código:</p><p class="invite-code large" style="font-size:26px;font-weight:800;letter-spacing:4px;text-align:center">${esc(reg.backupCode)}</p><p class="small">Copia o anota este código en un lugar seguro antes de continuar. Funciona una sola vez; al usarlo se genera uno nuevo.</p><div class="quick-actions">${btn('Copiar código','copy-backup',reg.backupCode,'secondary')}${btn('Ya guardé mi código, continuar '+icon('arrow'),'finish-register','','primary')}</div>`,true);
+          dialog.dataset.afterRegister = 'yes';
+        } else {
+          const pendingLesson = resumeNoteAccount();
+          go(pendingLesson ? 'lesson' : 'home', pendingLesson);
+          render();
         }
       } else if (type === 'search') {
         const result = searchItems(b.query)[0];
@@ -1287,7 +1323,7 @@
       if (location.hash !== target) {location.replace(target);return;}
     }
     if (model?.user()) {try {await model.refresh();} catch (e) {notice(e.message, true);}}
-    dialog.close();
+    if (dialog.dataset.persistent !== 'yes') dialog.close();
     preview = null;
     feedback = null;
     document.documentElement.dataset.menu = 'closed';
