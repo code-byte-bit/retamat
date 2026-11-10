@@ -3,7 +3,7 @@ window.RetamatServer = (() => {
   const clone = x => JSON.parse(JSON.stringify(x));
   const methods = ['savePracticeDraft','startSimulation','finishSimulation','startDaily','startSmartReview','nextHint','saveExamDraft','submitExam','attachFile','createGroup','joinGroup','editGroup','setEnrollment','postGroupNotice','saveExercise','createTask','duplicateTask','closeTask','start','answer','startReview','setSettings','bookmark','note','feedback','readNotice','createRoom','joinRoom','controlRoom','chat','editLesson','archiveExercise','export','restore'];
   async function create() {
-    if (location.protocol === 'file:') throw Error('Inicia INICIAR_RETAMAT.bat y abre http://127.0.0.1:3001. MySQL necesita el servidor encendido.');
+    if (location.protocol === 'file:') throw Error('Abre RETAMAT desde el navegador web para continuar.');
     const model = Object.create(RetamatModel.Model.prototype);
     let cache = {...RetamatModel.seed(),users:[],serverManaged:true,serverView:true}, actor = null, tail = Promise.resolve();
     const pending = new Map();
@@ -25,7 +25,7 @@ window.RetamatServer = (() => {
     model.pending = 0;
     model.data = () => ({...clone(cache),serverNow:Date.now()+(model.clockOffset||0)});
     model.user = () => actor && clone(cache.users.find(u => u.id === actor.id) || null);
-    model.save = model.update = () => { throw Error('Guarda los cambios mediante el servidor.'); };
+    model.save = model.update = () => { throw Error('No se pudo guardar directamente.'); };
     model.expireExams = () => {};
     function accept(body) {
       if (body.data) { RetamatModel.validate(body.data); cache = body.data; actor = body.user; model.clockOffset = body.serverNow - Date.now(); ensureLive(); }
@@ -34,9 +34,9 @@ window.RetamatServer = (() => {
       let response;
       const controller = new AbortController(), timeout = setTimeout(()=>controller.abort(),20000);
       try { response = await fetch(url,{signal:controller.signal,credentials:'same-origin',headers:body === undefined?{}:{'Content-Type':'application/json'},method:body === undefined?'GET':'POST',...(body === undefined?{}:{body:JSON.stringify(body)})}); }
-      catch { throw Object.assign(Error('No se pudo contactar al servidor. Comprueba que siga encendido y vuelve a intentar; tu texto pendiente se conserva.'),{network:true}); }
+      catch { throw Object.assign(Error('No se pudo completar la operación en este momento. Vuelve a intentar; tu texto pendiente se conserva.'),{network:true}); }
       finally { clearTimeout(timeout); }
-      let data; try { data = await response.json(); } catch { throw Object.assign(Error('No se pudo leer la confirmación del servidor. Vuelve a intentar la misma operación.'),{network:true}); }
+      let data; try { data = await response.json(); } catch { throw Object.assign(Error('No se pudo leer la confirmación. Vuelve a intentar la misma operación.'),{network:true}); }
       accept(data);
       if (!response.ok) {
         if (response.status === 401 && !anonymous) { actor = null; stopLive(); window.dispatchEvent(new Event('retamat-session-lost')); }
@@ -77,7 +77,7 @@ window.RetamatServer = (() => {
     });
     model.recoveryStatus = () => request('/api/auth/recuperacion/estado',undefined,{anonymous:true});
     model.requestRecovery = email => request('/api/auth/recuperacion/solicitar',{email},{anonymous:true});
-    model.applyRecovery = (token,password) => request('/api/auth/recuperacion/restablecer',{token,password},{anonymous:true});
+    model.applyRecovery = (payload,password) => request('/api/auth/recuperacion/restablecer',typeof payload==='object'&&payload!==null?payload:{token:payload,password},{anonymous:true});
     model.studentPreview = id => request('/api/espacio/vista-previa/'+encodeURIComponent(id));
     try { await request('/api/espacio',undefined,{anonymous:true}); } catch(error) { if (error.status !== 401) throw error; }
     return model;

@@ -47,7 +47,7 @@ const ALLOWED=new Set(['savePracticeDraft','startSimulation','finishSimulation',
 const STAFF=new Set(['createGroup','editGroup','setEnrollment','postGroupNotice','saveExercise','createTask','duplicateTask','closeTask','feedback','createRoom','controlRoom','archiveExercise']);
 function restoreContent(api,current,payload){
  const incoming=api.validate(clone(payload)),mapping=new Map();
- for(const old of incoming.users){const u=current.users.find(u=>u.email===old.email);if(!u)throw problem(400,'La copia incluye una cuenta que no existe en MySQL: '+old.email+'. Regístrala antes de importar.');mapping.set(old.id,u.id);}
+ for(const old of incoming.users){const u=current.users.find(u=>u.email===old.email);if(!u)throw problem(400,'La copia incluye una cuenta no registrada: '+old.email+'. Regístrala antes de importar.');mapping.set(old.id,u.id);}
  const remap=id=>{const value=mapping.get(id);if(!value)throw problem(400,'La copia contiene una referencia de usuario desconocida.');return value;};
  for(const g of incoming.groups){g.owner=remap(g.owner);g.members=g.members.map(remap);}for(const r of incoming.rooms){r.owner=remap(r.owner);r.members=r.members.map(remap);}for(const a of incoming.activities)a.owner=remap(a.owner);for(const e of incoming.exercises)e.owner=remap(e.owner);for(const n of incoming.notes)n.user=remap(n.user);for(const n of incoming.notifications)n.user=remap(n.user);
  incoming.settings=Object.fromEntries(Object.entries(incoming.settings).map(([id,s])=>[remap(id),s]));
@@ -116,7 +116,7 @@ async function verifyPassword(db,id,password){
  const hash=await derive(password,Buffer.from(u.sal,'hex'),600000,32,'sha256');if(!crypto.timingSafeEqual(hash,Buffer.from(u.hash_clave,'hex')))throw problem(403,'La contraseña actual no coincide.');
 }
 function mountSpace(app,pool,currentUser,{now=Date.now}={}){
- const service=createSpaceService(pool,{now}),wrap=fn=>async(req,res)=>{try{await fn(req,res);}catch(e){console.error('Error del espacio:',e.code||e.name);res.status(e.status||503).json({mensaje:e.status?e.message:'No se pudo guardar en MySQL. Conserva la página y vuelve a intentar.'});}};
+ const service=createSpaceService(pool,{now}),wrap=fn=>async(req,res)=>{try{await fn(req,res);}catch(e){console.error('Error del espacio:',e.code||e.name);res.status(e.status||503).json({mensaje:e.status?e.message:'No se pudo guardar los cambios. Conserva la página y vuelve a intentar.'});}};
  app.get('/api/espacio',currentUser,wrap(async(req,res)=>res.json(await service.snapshot(req))));
  app.post('/api/espacio/comando',currentUser,wrap(async(req,res)=>{const result=await service.command(req,req.body||{});res.status(result.error?.status||200).json({...result,mensaje:result.error?.message});}));
  app.post('/api/espacio/perfil',currentUser,wrap(async(req,res)=>{

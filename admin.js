@@ -39,7 +39,7 @@ async function bootstrapAdmin(pool,email){
 function adminInput(body){const b=body||{};if(!ROLES.includes(b.role)||typeof b.active!=='boolean'||!Number.isSafeInteger(b.revision)||b.revision<0)throw problem(400,'Elige un rol y un estado válidos. Vuelve a cargar el usuario si es necesario.');return b;}
 function mountAdmin(app,pool,currentUser,{lessonsCount=LESSONS.length,tableNames=TABLE_NAMES}={}){
  const admin=(req,res,next)=>req.user.role==='admin'?next():res.status(403).json({mensaje:'Esta sección requiere una cuenta de administrador.'});
- const wrap=fn=>async(req,res)=>{try{await fn(req,res);}catch(error){if(error.status)return res.status(error.status).json({mensaje:error.message});console.error('Error administrativo:',error.code||error.name);res.status(503).json({mensaje:'No se pudo consultar o guardar la administración. Revisa MySQL y vuelve a intentar.'});}};
+ const wrap=fn=>async(req,res)=>{try{await fn(req,res);}catch(error){if(error.status)return res.status(error.status).json({mensaje:error.message});console.error('Error administrativo:',error.code||error.name);res.status(503).json({mensaje:'No se pudo consultar o guardar la administración. Vuelve a intentar.'});}};
  async function assertActor(db,req){
   const [rows]=await db.execute('SELECT id,rol,activo,version_acceso FROM usuarios WHERE id = ? FOR UPDATE',[req.user.id]);const a=rows[0];
   if(!a||a.rol!=='admin'||!a.activo||a.version_acceso!==req.authVersion)throw problem(401,'Tu acceso administrativo cambió. Inicia sesión nuevamente.');

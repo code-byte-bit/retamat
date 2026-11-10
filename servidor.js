@@ -55,7 +55,7 @@ function createApp(conexion, {now = Date.now, legacy = false, mailer = undefined
       next();
     } catch(error) {
       console.error('Error de sesión:',error.code || 'SESION');
-      res.status(503).json({mensaje:'No se pudo verificar tu sesión. Revisa que MySQL esté encendido.'});
+      res.status(503).json({mensaje:'No se pudo verificar tu sesión. Inténtalo de nuevo.'});
     }
   }
   function authLimit(req,res,next) {
@@ -101,7 +101,7 @@ function createApp(conexion, {now = Date.now, legacy = false, mailer = undefined
     const space=mountSpace(app,conexion,currentUser,{now});
     mountExtras(app,conexion,currentUser,space,{now});
     mountRecovery(app,conexion,{now,mailer});
-    app.use('/api',(req,res,next)=>/^\/(auth|admin|espacio)(\/|$)/.test(req.path)?next():res.status(410).json({mensaje:'Esta ruta fue integrada. Abre RETAMAT en http://127.0.0.1:3001.'}));
+    app.use('/api',(req,res,next)=>/^\/(auth|admin|espacio)(\/|$)/.test(req.path)?next():res.status(410).json({mensaje:'Esta ruta ya no está disponible.'}));
   }
   app.get('/', (req,res) => res.redirect('/login'));
   app.get('/login', (req,res) => res.sendFile(path.join(__dirname,'public','index.html')));
@@ -135,7 +135,7 @@ function createApp(conexion, {now = Date.now, legacy = false, mailer = undefined
       res.json({mensaje:'Sesión iniciada.',user:{id:u.id,name:u.nombre,email:u.correo,role:u.rol}});
     } catch(error) {
       console.error('Error al entrar:',error.code || 'LOGIN');
-      res.status(503).json({mensaje:'No se pudo iniciar sesión. Revisa la conexión con MySQL.'});
+      res.status(503).json({mensaje:'No se pudo iniciar sesión. Inténtalo de nuevo.'});
     }
   });
   mountAdmin(app,conexion,currentUser,legacy?{}:{lessonsCount:18,tableNames:[...TABLE_NAMES,...[...SPACE_TABLES,...FILE_TABLES,...RECOVERY_TABLES].map(([name])=>name)]});
@@ -150,10 +150,10 @@ function createApp(conexion, {now = Date.now, legacy = false, mailer = undefined
   app.get('/probar-conexion', async (req,res) => {
     try {
       await conexion.execute('SELECT 1');
-      res.json({conectado:true,mensaje:'RETAMAT se conectó a MySQL'});
+      res.json({ok:true,mensaje:'Servicio disponible'});
     } catch(error) {
-      console.error('Error de MySQL:',error.code || 'CONEXION');
-      res.status(500).json({conectado:false,mensaje:'No se pudo conectar. Revisa MySQL y el archivo .env.'});
+      console.error('Error de base de datos:',error.code || 'CONEXION');
+      res.status(500).json({ok:false,mensaje:'Servicio no disponible temporalmente.'});
     }
   });
   app.post('/api/auth/register', authLimit, async (req,res) => {
@@ -175,12 +175,12 @@ function createApp(conexion, {now = Date.now, legacy = false, mailer = undefined
         'INSERT INTO usuarios (id,nombre,correo,rol,activo,hash_clave,sal,version_acceso) VALUES (?,?,?,?,?,?,?,?)',
         [id,name,email,role,true,hash,salt.toString('hex'),0]
       );
-      res.status(201).json({mensaje:'Cuenta guardada en MySQL. Ya puedes iniciar sesión.',user:{id,name,email,role,active:true}});
+      res.status(201).json({mensaje:'Cuenta creada. Ya puedes iniciar sesión.',user:{id,name,email,role,active:true}});
     } catch(error) {
-      if (error.code === 'ER_DUP_ENTRY') return res.status(409).json({mensaje:'Ese correo ya tiene una cuenta en MySQL.'});
+      if (error.code === 'ER_DUP_ENTRY') return res.status(409).json({mensaje:'Ese correo ya tiene una cuenta registrada.'});
       console.error('Error al registrar:',error.code || 'REGISTRO');
       const missing = ['ER_NO_SUCH_TABLE','ER_BAD_FIELD_ERROR','ER_NO_REFERENCED_ROW_2'].includes(error.code);
-      res.status(500).json({mensaje:missing?'Revisa las tablas usuarios y roles en la base retamat.':'No se pudo guardar. Revisa que MySQL esté encendido y que .env tenga los datos correctos.'});
+      res.status(500).json({mensaje:missing?'Revisa las tablas de usuarios y roles.':'No se pudo crear la cuenta en este momento. Inténtalo de nuevo.'});
     }
   });
   app.use((error,req,res,next) => {

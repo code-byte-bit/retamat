@@ -65,7 +65,7 @@ function mountExtras(app,pool,currentUser,service,{now=Date.now}={}){
  }));
  app.get('/api/espacio/archivos/:id',currentUser,wrap(async(req,res)=>{
   const s=await service.snapshot(req);if(![...s.data.tasks,...s.data.activities].some(t=>(t.attachments||[]).some(f=>f.id===req.params.id)))throw problem(403,'No tienes acceso a este archivo.');
-  const [rows]=await pool.execute('SELECT id,nombre,mime,tamano,contenido FROM archivos WHERE id = ?',[req.params.id]);const f=rows[0];if(!f)throw problem(404,'El archivo no está disponible. Restaura una copia completa de MySQL si importaste solo el JSON.');
+  const [rows]=await pool.execute('SELECT id,nombre,mime,tamano,contenido FROM archivos WHERE id = ?',[req.params.id]);const f=rows[0];if(!f)throw problem(404,'El archivo no está disponible.');
   res.set('Content-Type',f.mime);res.set('Content-Disposition',"attachment; filename=\"archivo\"; filename*=UTF-8''"+encodeURIComponent(f.nombre));res.send(Buffer.from(f.contenido.data||f.contenido));
  }));
  app.get('/api/espacio/reporte.pdf',currentUser,wrap(async(req,res)=>{

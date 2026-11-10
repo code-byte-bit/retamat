@@ -13,7 +13,7 @@ self.addEventListener('fetch',event=>{
   const request=event.request,url=new URL(request.url);
   if(request.method!=='GET'||url.origin!==self.location.origin||url.pathname.startsWith('/api/'))return;
   if(request.mode==='navigate'&&['/','/index.html'].includes(url.pathname)){
-    event.respondWith(fetch(request).catch(async()=>await caches.match('/offline.html')||new Response('Enciende el servidor de RETAMAT y vuelve a abrir la aplicación.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}})));return;
+    event.respondWith(fetch(request).catch(async()=>await caches.match('/offline.html')||new Response('Comprueba tu conexión y vuelve a abrir la aplicación.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}})));return;
   }
   if(!PUBLIC_ASSETS.includes(url.pathname)||url.search)return;
   event.respondWith(fetch(request).then(response=>{if(response.ok&&response.type==='basic'){const copy=response.clone();event.waitUntil(caches.open(CACHE).then(cache=>cache.put(request,copy)));}return response;}).catch(()=>caches.match(request)));
