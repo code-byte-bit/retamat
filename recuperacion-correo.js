@@ -2,18 +2,39 @@ const crypto=require('node:crypto'),{promisify}=require('node:util'),{transactio
 const derive=promisify(crypto.pbkdf2),digest=x=>crypto.createHash('sha256').update(x).digest('hex');
 const RECOVERY_TABLES=[['recuperaciones',`CREATE TABLE IF NOT EXISTS recuperaciones (id CHAR(64) PRIMARY KEY,usuario_id VARCHAR(100) NOT NULL,version_acceso INT UNSIGNED NOT NULL,vence_ms BIGINT UNSIGNED NOT NULL,usada BOOLEAN NOT NULL DEFAULT FALSE,INDEX idx_recuperacion_usuario (usuario_id),CONSTRAINT fk_recuperacion_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`]];
 const problem=(status,message)=>Object.assign(Error(message),{status});
+function parseFrom(value){
+ const m=String(value||'').match(/^\s*(.*?)\s*<\s*([^>]+)\s*>\s*$/);
+ return m?{name:m[1].replace(/^"|"$/g,'')||'RETAMAT',email:m[2].trim()}:{name:'RETAMAT',email:String(value||'').trim()};
+}
+// Envío por API HTTPS (puerto 443). Render gratis bloquea los puertos SMTP 25, 465 y 587.
+function brevoTransport(apiKey){
+ return {async sendMail({from,to,subject,text,html}){
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+  try{
+   const res=await fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',signal:controller.signal,headers:{'api-key':apiKey,'content-type':'application/json',accept:'application/json'},body:JSON.stringify({sender:parseFrom(from),to:[{email:to}],subject,textContent:text,htmlContent:html})});
+   if(!res.ok){const detail=await res.text().catch(()=>'');throw Object.assign(Error('Brevo '+res.status+': '+detail.slice(0,300)),{code:'BREVO_'+res.status});}
+   return res.json().catch(()=>({}));
+  }finally{clearTimeout(timer);}
+ }};
+}
 function mailConfig(env=process.env){
- const user=(env.SMTP_USER||'').trim();
- const rawPass=(env.SMTP_PASSWORD||'').trim();
- const host=(env.SMTP_HOST||(user&&rawPass?'smtp.gmail.com':'')).trim();
- const from=(env.MAIL_FROM||(user?`RETAMAT <${user}>`:'')).trim();
- const pass=host.includes('gmail')?rawPass.replace(/\s+/g,''):rawPass;
- if(!host||!from||(host.includes('gmail')&&(!user||!pass)))return null;
  let origin='http://127.0.0.1:3001';
  if(env.APP_URL){
   const base=new URL(env.APP_URL);if(!['http:','https:'].includes(base.protocol)||base.username||base.password||base.search||base.hash)throw Error('APP_URL no válida.');
   origin=base.origin;
  }
+ const user=(env.SMTP_USER||'').trim();
+ const brevoKey=(env.BREVO_API_KEY||'').trim();
+ if(brevoKey){
+  const from=(env.MAIL_FROM||(user?`RETAMAT <${user}>`:'')).trim();
+  if(!from)return null;
+  return {base:origin,from,transport:brevoTransport(brevoKey)};
+ }
+ const rawPass=(env.SMTP_PASSWORD||'').trim();
+ const host=(env.SMTP_HOST||(user&&rawPass?'smtp.gmail.com':'')).trim();
+ const from=(env.MAIL_FROM||(user?`RETAMAT <${user}>`:'')).trim();
+ const pass=host.includes('gmail')?rawPass.replace(/\s+/g,''):rawPass;
+ if(!host||!from||(host.includes('gmail')&&(!user||!pass)))return null;
  const nodemailer=require('nodemailer'),port=Number(env.SMTP_PORT||587);
  return {base:origin,from,transport:nodemailer.createTransport({host,port,secure:port===465,requireTLS:port!==465,...(user?{auth:{user,pass}}:{}) ,connectionTimeout:10000,greetingTimeout:10000,socketTimeout:15000})};
 }
@@ -42,7 +63,7 @@ function mountRecovery(app,pool,{now=Date.now,mailer=undefined}={}){
     });
    }catch(error){
     await pool.execute('UPDATE recuperaciones SET usada = TRUE WHERE id = ?',[id]);
-    console.error('No se pudo enviar el correo de recuperación:',error.code||'SMTP');
+    console.error('No se pudo enviar el correo de recuperación:',error.code||'SMTP',error.message||'');
     throw problem(503,'No se pudo enviar el código de verificación. Revisa la configuración del correo e inténtalo de nuevo.');
    }
   }
