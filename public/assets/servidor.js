@@ -60,7 +60,7 @@ window.RetamatServer = (() => {
       pending.delete(key); return body.result;
     });
     model.login = (email,password) => enqueue(async () => { await request('/api/auth/login',{email,password},{anonymous:true}); await refresh(); });
-    model.register = (name,email,password,role) => enqueue(async () => { await request('/api/auth/register',{name,email,password,role},{anonymous:true}); await request('/api/auth/login',{email,password},{anonymous:true}); await refresh(); });
+    model.register = (name,email,password,role) => enqueue(async () => { const reg = await request('/api/auth/register',{name,email,password,role},{anonymous:true}); await request('/api/auth/login',{email,password},{anonymous:true}); await refresh(); return reg; });
     model.logout = () => enqueue(async () => { stopLive(); await request('/api/auth/logout',{}); actor = null; cache = {...RetamatModel.seed(),users:[],serverManaged:true,serverView:true}; pending.clear(); });
     async function credentials(url,body) {
       const result = await request(url,body);

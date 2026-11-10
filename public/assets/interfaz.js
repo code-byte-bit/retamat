@@ -322,7 +322,7 @@
     modal('Vista previa como estudiante',`<div class="preview-student"><span class="tag">SIMULACIÓN · NO CREA ENTREGAS</span><h2>${esc(t.title)}</h2><p>${esc(studentPreview.group)} · ${t.exam?'Examen de '+t.duration+' minutos':'Tarea'}</p><p>${esc(t.instructions)}</p><p class="small">${t.attachments?.length||0} archivo(s) de instrucciones · Cierre: ${date(t.due)}</p><div class="question-stage"><span class="tag">PREGUNTA ${index+1} DE ${t.questions.length}</span><h3>${esc(q.prompt)}</h3>${questionMedia(q)}<fieldset disabled>${examControl(q,index)}</fieldset></div><div class="quick-actions">${index?btn('Anterior','preview-page',String(index-1),'secondary'):''}${index+1<t.questions.length?btn('Siguiente','preview-page',String(index+1)):''}</div><p class="small">Las soluciones están ocultas. Esta vista no guarda respuestas ni consume intentos.</p></div>`);
   }
   function recoveryCodeForm(email='',info='') {
-    form('Ingresa el código de verificación','recovery-reset',(info?`<p>${esc(info)}</p>`:'<p>Escribe el correo de tu cuenta, el código de 6 dígitos que recibiste y tu nueva contraseña.</p>')+field('Correo de tu cuenta','email',email,'email','required maxlength="150" autocomplete="email"')+field('Código de verificación (6 dígitos)','code','','text','required pattern="[0-9]{6}" maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="123456"')+field('Nueva contraseña','password','','password','required minlength="10" maxlength="128" autocomplete="new-password"')+field('Repite la contraseña','repeat','','password','required minlength="10" maxlength="128" autocomplete="new-password"')+'<p class="small">Usa al menos diez caracteres con letras y números. El código vence en 15 minutos.</p>','','Cambiar contraseña');
+    form('Restablecer contraseña con código de respaldo','recovery-reset',(info?`<p>${esc(info)}</p>`:'<p>Ingresa el correo de tu cuenta, tu código de recuperación (de 8 caracteres generado al registrarte) y tu nueva contraseña.</p>')+field('Correo de tu cuenta','email',email,'email','required maxlength="150" autocomplete="email"')+field('Código de recuperación','code','','text','required minlength="6" maxlength="12" autocomplete="off" placeholder="Ejemplo: A7K2-9M4P"')+field('Nueva contraseña','password','','password','required minlength="10" maxlength="128" autocomplete="new-password"')+field('Repite la contraseña','repeat','','password','required minlength="10" maxlength="128" autocomplete="new-password"')+'<p class="small">Usa al menos diez caracteres con letras y números. Al restablecerla recibirás un nuevo código de respaldo.</p>','','Actualizar contraseña');
   }
   function recoveryReset(token) {
     auth();if(!/^[a-f0-9]{64}$/.test(token)){notice('El enlace de recuperación no es válido.',true);return;}
@@ -812,11 +812,7 @@
       } else if (action === 'calendar-today') {
         calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
         render();
-      } else if (action === 'calendar-day') calendarDay(id);else if (action === 'recovery') {
-        const status=await model.recoveryStatus();
-        form('Recuperar contraseña','recovery-request',field('Correo de tu cuenta','email','','email','required maxlength="150" autocomplete="email"')+`<p class="small">${status.enabled?'Te enviaremos un código de verificación de 6 dígitos si tu cuenta está activa.':'El envío de correo aún no está configurado. Puedes pedirle al administrador que restablezca tu contraseña desde Usuarios.'}</p><p><button type="button" class="text-button" data-action="recovery-code">Ya tengo un código de verificación</button></p>`,'','Enviar código');
-        if(!status.enabled)dialog.querySelector('button[type="submit"]').disabled=true;
-      } else if (action === 'recovery-code') {
+      } else if (action === 'calendar-day') calendarDay(id);else if (action === 'recovery' || action === 'recovery-code') {
         recoveryCodeForm();
       } else if (action === 'reset-password') {
         model.admin();
@@ -1015,9 +1011,19 @@
       }else if(type==='attach-file'){
         const file=f.elements.file.files[0];if(!file||file.size>5*1024*1024)throw Error('Selecciona un PDF o imagen de hasta 5 MB.');await model.attachFile(f.dataset.type,f.dataset.id,{name:file.name,base64:await readFileBase64(file)});filesDialog(f.dataset.type,f.dataset.id);notice('Archivo guardado.');
       }else if(type==='recovery-request'){
-        const result=await model.requestRecovery(b.email);recoveryCodeForm(b.email,result.mensaje);
+        recoveryCodeForm(b.email);
       }else if(type==='recovery-reset'){
-        if(b.password!==b.repeat)throw Error('Las contraseñas no coinciden.');const result=await model.applyRecovery(f.dataset.token?{token:f.dataset.token,password:b.password}:{email:b.email,code:b.code,password:b.password});await model.logout();dialog.close();location.hash='';auth();notice(result.mensaje);
+        if(b.password!==b.repeat)throw Error('Las contraseñas no coinciden.');
+        const result=await model.applyRecovery(f.dataset.token?{token:f.dataset.token,password:b.password}:{email:b.email,code:b.code,password:b.password});
+        await model.logout();
+        dialog.close();
+        location.hash='';
+        auth();
+        if(result.nextBackupCode){
+          modal('Contraseña restablecida',`<p>Tu contraseña fue actualizada correctamente.</p><p><strong>Nuevo código de recuperación:</strong></p><p class="invite-code large" style="font-size:24px;letter-spacing:3px;text-align:center">${esc(result.nextBackupCode)}</p><p class="small">Guarda este código en un lugar seguro. Tu código anterior ya no funciona.</p>`);
+        } else {
+          notice(result.mensaje);
+        }
       }else if (type === 'discard-note-draft') {
         if (!b.confirm) throw Error('Confirma que deseas descartar los cambios.');
         clearTimeout(noteSaveTimer);
@@ -1043,10 +1049,13 @@
         go(pendingLesson ? 'lesson' : 'home', pendingLesson);
         render();
       } else if (type === 'register') {
-        await model.register(b.name, b.email, b.password, b.role);
+        const reg = await model.register(b.name, b.email, b.password, b.role);
         const pendingLesson = resumeNoteAccount();
         go(pendingLesson ? 'lesson' : 'home', pendingLesson);
         render();
+        if(reg?.backupCode){
+          modal('Guarda tu código de recuperación',`<p>¡Bienvenido a RETAMAT, <strong>${esc(b.name)}</strong>!</p><p>Si en algún momento olvidas tu contraseña, podrás recuperarla usando tu correo y este código:</p><p class="invite-code large" style="font-size:26px;font-weight:800;letter-spacing:4px;text-align:center">${esc(reg.backupCode)}</p><p class="small">Copia o anota este código en un lugar seguro. Funciona una sola vez; al usarlo se genera uno nuevo.</p><p><button type="button" class="primary" data-action="close">Entendido, continuar</button></p>`);
+        }
       } else if (type === 'search') {
         const result = searchItems(b.query)[0];
         if (result) go(result.view, result.id);

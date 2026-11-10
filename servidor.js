@@ -11,7 +11,7 @@ const {ACTIVITY_TABLES,mountActivities}=require('./actividades');
 const {ADMIN_TABLES,mountAdmin,TABLE_NAMES}=require('./admin');
 const {SPACE_TABLES,mountSpace}=require('./espacio');
 const {FILE_TABLES,mountLive,mountExtras}=require('./mejoras');
-const {RECOVERY_TABLES,mountRecovery}=require('./recuperacion-correo');
+const {RECOVERY_TABLES,mountRecovery,generateBackupCode,normalizeCode}=require('./recuperacion-correo');
 const CORE_TABLES=[['roles',`CREATE TABLE IF NOT EXISTS roles (codigo VARCHAR(20) PRIMARY KEY,nombre VARCHAR(40) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`],['usuarios',`CREATE TABLE IF NOT EXISTS usuarios (id VARCHAR(100) PRIMARY KEY,nombre VARCHAR(80) NOT NULL,correo VARCHAR(150) NOT NULL UNIQUE,rol VARCHAR(20) NOT NULL,activo BOOLEAN NOT NULL DEFAULT TRUE,hash_clave CHAR(64) NOT NULL,sal CHAR(32) NOT NULL,version_acceso INT UNSIGNED NOT NULL DEFAULT 0,fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT fk_usuarios_rol FOREIGN KEY (rol) REFERENCES roles(codigo)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`]];
 
 // Las sesiones viven en este proceso: reiniciar Node cierra todas las sesiones.
@@ -171,11 +171,27 @@ function createApp(conexion, {now = Date.now, legacy = false, mailer = undefined
       const id = randomUUID(), salt = randomBytes(16);
       const hash = (await derive(b.password, salt, HASH_ITERATIONS, 32, 'sha256')).toString('hex');
       const name = b.name.trim(), email = b.email.trim().toLowerCase();
+      const backupCode = generateBackupCode();
+      const backupHash = digest(`${id}:${normalizeCode(backupCode)}`);
       await conexion.execute(
         'INSERT INTO usuarios (id,nombre,correo,rol,activo,hash_clave,sal,version_acceso) VALUES (?,?,?,?,?,?,?,?)',
         [id,name,email,role,true,hash,salt.toString('hex'),0]
       );
-      res.status(201).json({mensaje:'Cuenta creada. Ya puedes iniciar sesión.',user:{id,name,email,role,active:true}});
+      try {
+        await conexion.execute(
+          'INSERT INTO recuperaciones (id,usuario_id,version_acceso,vence_ms,usada,tipo) VALUES (?,?,?,?,FALSE,?)',
+          [backupHash,id,0,0,'backup']
+        );
+      } catch (recErr) {
+        // En caso de que la tabla recuperaciones aún no tenga la columna tipo
+        if (recErr.code === 'ER_BAD_FIELD_ERROR') {
+          await conexion.execute(
+            'INSERT INTO recuperaciones (id,usuario_id,version_acceso,vence_ms,usada) VALUES (?,?,?,?,FALSE)',
+            [backupHash,id,0,0]
+          );
+        } else throw recErr;
+      }
+      res.status(201).json({mensaje:'Cuenta creada. Guarda tu código de recuperación.',user:{id,name,email,role,active:true},backupCode});
     } catch(error) {
       if (error.code === 'ER_DUP_ENTRY') return res.status(409).json({mensaje:'Ese correo ya tiene una cuenta registrada.'});
       console.error('Error al registrar:',error.code || 'REGISTRO');
