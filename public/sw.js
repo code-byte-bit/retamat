@@ -1,5 +1,5 @@
 /* Solo recursos públicos. Nunca intercepta API, adjuntos o informes privados. */
-const CACHE='retamat-publico-2.6.0';
+const CACHE='retamat-publico-2.4.0';
 const PUBLIC_ASSETS=[
   '/offline.html','/assets/favicon.svg','/assets/icono-192.png','/assets/icono-512.png',
   '/assets/estilos.css','/assets/mejoras.css','/assets/diseno.css','/assets/aprendizaje.css',
@@ -15,6 +15,6 @@ self.addEventListener('fetch',event=>{
   if(request.mode==='navigate'&&['/','/index.html'].includes(url.pathname)){
     event.respondWith(fetch(request).catch(async()=>await caches.match('/offline.html')||new Response('Comprueba tu conexión y vuelve a abrir la aplicación.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}})));return;
   }
-  if(!PUBLIC_ASSETS.includes(url.pathname))return;
-  event.respondWith(fetch(request).then(response=>{if(response.ok&&response.type==='basic'){const copy=response.clone();event.waitUntil(caches.open(CACHE).then(cache=>cache.put(url.pathname,copy)));}return response;}).catch(()=>caches.match(url.pathname)));
+  if(!PUBLIC_ASSETS.includes(url.pathname)||url.search)return;
+  event.respondWith(fetch(request).then(response=>{if(response.ok&&response.type==='basic'){const copy=response.clone();event.waitUntil(caches.open(CACHE).then(cache=>cache.put(request,copy)));}return response;}).catch(()=>caches.match(request)));
 });

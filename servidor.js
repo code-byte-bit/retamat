@@ -100,7 +100,7 @@ function createApp(conexion, {now = Date.now, legacy = false, mailer = undefined
     app.locals.live=mountLive(app,currentUser,{heartbeatMs:liveHeartbeatMs});
     const space=mountSpace(app,conexion,currentUser,{now});
     mountExtras(app,conexion,currentUser,space,{now});
-    mountRecovery(app,conexion,{now,mailer,currentUser});
+    mountRecovery(app,conexion,{now,mailer});
     app.use('/api',(req,res,next)=>/^\/(auth|admin|espacio)(\/|$)/.test(req.path)?next():res.status(410).json({mensaje:'Esta ruta ya no está disponible.'}));
   }
   app.get('/', (req,res) => res.redirect('/login'));
@@ -177,10 +177,20 @@ function createApp(conexion, {now = Date.now, legacy = false, mailer = undefined
         'INSERT INTO usuarios (id,nombre,correo,rol,activo,hash_clave,sal,version_acceso) VALUES (?,?,?,?,?,?,?,?)',
         [id,name,email,role,true,hash,salt.toString('hex'),0]
       );
-      await conexion.execute(
-        'INSERT INTO recuperaciones (id,usuario_id,version_acceso,vence_ms,usada) VALUES (?,?,?,?,FALSE)',
-        [backupHash,id,0,0]
-      );
+      try {
+        await conexion.execute(
+          'INSERT INTO recuperaciones (id,usuario_id,version_acceso,vence_ms,usada,tipo) VALUES (?,?,?,?,FALSE,?)',
+          [backupHash,id,0,0,'backup']
+        );
+      } catch (recErr) {
+        // En caso de que la tabla recuperaciones aún no tenga la columna tipo
+        if (recErr.code === 'ER_BAD_FIELD_ERROR') {
+          await conexion.execute(
+            'INSERT INTO recuperaciones (id,usuario_id,version_acceso,vence_ms,usada) VALUES (?,?,?,?,FALSE)',
+            [backupHash,id,0,0]
+          );
+        } else throw recErr;
+      }
       res.status(201).json({mensaje:'Cuenta creada. Guarda tu código de recuperación.',user:{id,name,email,role,active:true},backupCode});
     } catch(error) {
       if (error.code === 'ER_DUP_ENTRY') return res.status(409).json({mensaje:'Ese correo ya tiene una cuenta registrada.'});
