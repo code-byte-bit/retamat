@@ -766,6 +766,12 @@ window.RetamatModel = (() => {
         for (const n of d.notifications) if (n.user === u.id && (!nid || n.id === nid)) n.read = true;
       });
     }
+    deleteNotice(nid) {
+      const u = this.require();
+      this.update(d => {
+        d.notifications = d.notifications.filter(n => !(n.user === u.id && (!nid || n.id === nid)));
+      });
+    }
     createRoom(name, topic, level) {
       const u = this.manager(),
         rid = id();

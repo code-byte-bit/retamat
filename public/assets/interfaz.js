@@ -559,7 +559,7 @@
   }
   function notices() {
     const ns = model.data().notifications.filter((n) => n.user === user().id);
-    return `<div class="section-title"><h2>${ns.filter((n) => !n.read).length} avisos sin leer</h2>${btn('Marcar todos como leídos', 'read-all', '', 'secondary')}</div>${ns.length ? `<div class="notice-list">${ns.map((n) => `<article class="panel notice-card ${n.read ? '' : 'unread'}"><span class="action-icon">${icon('bell')}</span><div><span class="tag">${n.read ? 'LEÍDA' : 'NUEVA'}</span><h3>${esc(n.title)}</h3><p>${esc(n.body)}</p><small>${date(n.created)}</small></div>${btn('Abrir', 'notice', n.id, 'secondary')}</article>`).join('')}</div>` : empty('Estás al día', 'Aquí aparecerán actividades de tus grupos y comentarios del docente.')}`;
+    return `<div class="section-title"><h2>${ns.filter((n) => !n.read).length} avisos sin leer</h2><div class="quick-actions">${btn('Marcar todos como leídos', 'read-all', '', 'secondary')}${ns.length ? btn('Borrar todas', 'delete-all-notices', '', 'secondary') : ''}</div></div>${ns.length ? `<div class="notice-list">${ns.map((n) => `<article class="panel notice-card ${n.read ? '' : 'unread'}"><span class="action-icon">${icon('bell')}</span><div><span class="tag">${n.read ? 'LEÍDA' : 'NUEVA'}</span><h3>${esc(n.title)}</h3><p>${esc(n.body)}</p><small>${date(n.created)}</small></div><span class="quick-actions">${btn('Abrir', 'notice', n.id, 'secondary')}${btn('Borrar', 'delete-notice', n.id, 'text-button')}</span></article>`).join('')}</div>` : empty('Estás al día', 'Aquí aparecerán actividades de tus grupos y comentarios del docente.')}`;
   }
   function users() {
     const rows = model.data().users.filter((u) => (!userQuery || normalize(u.name + ' ' + (u.matricula || '') + ' ' + u.email).includes(normalize(userQuery))) && (userRole === 'all' || u.role === userRole));
@@ -1028,6 +1028,14 @@
         render();
       } else if (action === 'read-all') {
         await model.readNotice();
+        render();
+      } else if (action === 'delete-all-notices') {
+        await model.deleteNotice();
+        toast('Notificaciones borradas.');
+        render();
+      } else if (action === 'delete-notice') {
+        await model.deleteNotice(id);
+        toast('Notificación borrada.');
         render();
       } else if (action === 'notice') {
         const n = model.data().notifications.find((n) => n.id === id && n.user === user().id);

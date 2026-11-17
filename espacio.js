@@ -43,7 +43,7 @@ function expire(model,time){
  const d=model.data(),expired=d.activities.filter(a=>!a.done&&(a.deadline&&a.deadline<=time||a.task&&d.tasks.some(t=>t.id===a.task&&(!t.active||!t.legacyNoDue&&t.due<=time)))).map(a=>a.id);
  if(expired.length)model.update(data=>{for(const a of data.activities)if(expired.includes(a.id)){if(a.examReview)finishExam(data,a,time);else a.done=true;}});
 }
-const ALLOWED=new Set(['savePracticeDraft','startSimulation','finishSimulation','startDaily','startSmartReview','nextHint','saveExamDraft','submitExam','attachFile','createGroup','joinGroup','editGroup','leaveGroup','deleteGroup','setEnrollment','postGroupNotice','saveExercise','createTask','duplicateTask','closeTask','start','answer','startReview','setSettings','bookmark','note','feedback','readNotice','createRoom','joinRoom','controlRoom','chat','editLesson','archiveExercise','export','restore']);
+const ALLOWED=new Set(['savePracticeDraft','startSimulation','finishSimulation','startDaily','startSmartReview','nextHint','saveExamDraft','submitExam','attachFile','createGroup','joinGroup','editGroup','leaveGroup','deleteGroup','setEnrollment','postGroupNotice','saveExercise','createTask','duplicateTask','closeTask','start','answer','startReview','setSettings','bookmark','note','feedback','readNotice','deleteNotice','createRoom','joinRoom','controlRoom','chat','editLesson','archiveExercise','export','restore']);
 const STAFF=new Set(['createGroup','editGroup','deleteGroup','setEnrollment','postGroupNotice','saveExercise','createTask','duplicateTask','closeTask','feedback','createRoom','controlRoom','archiveExercise']);
 function restoreContent(api,current,payload){
  const incoming=api.validate(clone(payload)),mapping=new Map();
