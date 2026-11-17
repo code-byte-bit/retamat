@@ -36,6 +36,13 @@ async function mirror(db,before,after){
   await db.execute('INSERT INTO grupos (id,docente_id,nombre,descripcion,codigo,inscripciones_abiertas) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE nombre=VALUES(nombre),descripcion=VALUES(descripcion),codigo=VALUES(codigo),inscripciones_abiertas=VALUES(inscripciones_abiertas)',[g.id,g.owner,g.name,g.description||'',g.code,g.enrollmentOpen!==false]);
   const old=before.groups.find(x=>x.id===g.id)?.members||[];
   for(const uid of g.members.filter(uid=>!old.includes(uid)))await db.execute('INSERT INTO integrantes_grupo (grupo_id,usuario_id) VALUES (?,?)',[g.id,uid]);
+  for(const uid of old.filter(uid=>!g.members.includes(uid)))await db.execute('DELETE FROM integrantes_grupo WHERE grupo_id = ? AND usuario_id = ?',[g.id,uid]);
+ }
+ for(const g of before.groups.filter(old=>!after.groups.some(x=>x.id===old.id))){
+  for(const t of before.tasks.filter(t=>t.group===g.id))await db.execute('DELETE FROM entregas WHERE asignacion_id = ?',[t.id]);
+  await db.execute('DELETE FROM asignaciones WHERE grupo_id = ?',[g.id]);
+  await db.execute('DELETE FROM integrantes_grupo WHERE grupo_id = ?',[g.id]);
+  await db.execute('DELETE FROM grupos WHERE id = ?',[g.id]);
  }
  for(const t of changed('tasks'))await db.execute('INSERT INTO asignaciones (id,grupo_id,leccion_id,titulo,instrucciones,tipo,duracion_min,vence_ms,preguntas) VALUES (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE titulo=VALUES(titulo),instrucciones=VALUES(instrucciones),vence_ms=VALUES(vence_ms),preguntas=VALUES(preguntas)',[t.id,t.group,t.questions[0]?.topic||'mixto',t.title,t.instructions,t.exam?'examen':'tarea',t.exam?t.duration:null,t.legacyNoDue?null:t.due,JSON.stringify(t.questions)]);
  for(const a of changed('activities')){

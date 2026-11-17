@@ -473,7 +473,10 @@
   }
   function groups() {
     const groups = model.groups();
-    return `<section class="panel intro-panel horizontal"><div><span class="eyebrow">APRENDER TAMBIÉN ES COMPARTIR</span><h2>${manage() ? 'Construye tu próximo grupo' : 'Tu aula, tus retos'}</h2><p>${manage() ? 'Comparte un código y prepara tareas o exámenes.' : 'Pide al docente el código de tu grupo.'}</p></div>${btn(manage() ? 'Crear grupo ' + icon('plus') : 'Unirme a un grupo ' + icon('plus'), manage() ? 'new-group' : 'join-group')}</section><div class="section-title"><h2>${groups.length} grupos en tu espacio</h2></div>${groups.length ? `<div class="three-grid">${groups.map((g) => `<article class="panel group-card"><span class="action-icon">${icon('users')}</span><span class="tag">${g.members.length} ESTUDIANTES</span><h3>${esc(g.name)}</h3><p>${esc((g.description || '').slice(0, 140))}</p><span class="badge ${g.enrollmentOpen === false ? 'waiting' : 'success'}">Inscripciones ${g.enrollmentOpen === false ? 'pausadas' : 'abiertas'}</span><p>${model.data().tasks.filter((t) => t.group === g.id && t.active).length} actividades abiertas</p><footer><span class="invite-code">${g.code}</span>${btn('Entrar ' + icon('arrow'), 'group', g.id, 'secondary')}</footer></article>`).join('')}</div>` : empty('Tu grupo empieza con un código', manage() ? 'Crea un grupo y comparte su código con tus estudiantes.' : 'Tu docente puede crear un grupo y compartir su código.')}`;
+    return `<section class="panel intro-panel horizontal"><div><span class="eyebrow">APRENDER TAMBIÉN ES COMPARTIR</span><h2>${manage() ? 'Construye tu próximo grupo' : 'Tu aula, tus retos'}</h2><p>${manage() ? 'Comparte un código y prepara tareas o exámenes.' : 'Pide al docente el código de tu grupo.'}</p></div>${btn(manage() ? 'Crear grupo ' + icon('plus') : 'Unirme a un grupo ' + icon('plus'), manage() ? 'new-group' : 'join-group')}</section><div class="section-title"><h2>${groups.length} grupos en tu espacio</h2></div>${groups.length ? `<div class="three-grid">${groups.map((g) => {
+      const isManager = user().role === 'admin' || g.owner === user().id;
+      return `<article class="panel group-card"><span class="action-icon">${icon('users')}</span><span class="tag">${g.members.length} ESTUDIANTES</span><h3>${esc(g.name)}</h3><p>${esc((g.description || '').slice(0, 140))}</p><span class="badge ${g.enrollmentOpen === false ? 'waiting' : 'success'}">Inscripciones ${g.enrollmentOpen === false ? 'pausadas' : 'abiertas'}</span><p>${model.data().tasks.filter((t) => t.group === g.id && t.active).length} actividades abiertas</p><footer><span class="invite-code">${g.code}</span><div class="quick-actions">${isManager ? btn('Borrar grupo', 'delete-group', g.id, 'text-button') : btn('Salir del grupo', 'leave-group', g.id, 'text-button')}${btn('Entrar ' + icon('arrow'), 'group', g.id, 'secondary')}</div></footer></article>`;
+    }).join('')}</div>` : empty('Tu grupo empieza con un código', manage() ? 'Crea un grupo y comparte su código con tus estudiantes.' : 'Tu docente puede crear un grupo y compartir su código.')}`;
   }
   function group() {
     const g = model.group(key),
@@ -481,7 +484,7 @@
       manager = user().role === 'admin' || g.owner === user().id,
       tasks = d.tasks.filter((t) => t.group === g.id),
       deliveries = d.activities.filter((a) => tasks.some((t) => t.id === a.task));
-    return `<section class="invite-panel"><div><span class="eyebrow">COMPARTE EL SIGUIENTE RETO</span><h2>Código de invitación</h2><p>Inscripciones ${g.enrollmentOpen === false ? 'pausadas para nuevos miembros' : 'abiertas'}. Los miembros actuales conservan su acceso.</p></div><span class="invite-code large">${g.code}</span><div class="quick-actions">${btn('Copiar código', 'copy', g.code, 'secondary')}${manager ? btn('Editar grupo', 'edit-group', g.id, 'secondary') + btn(g.enrollmentOpen === false ? 'Abrir inscripciones' : 'Pausar inscripciones', 'enrollment', g.id, 'secondary') : ''}</div></section>${g.description ? `<section class="panel spacer"><h2>Acerca de este grupo</h2><p class="note-content">${esc(g.description)}</p></section>` : ''}${manager ? `<div class="section-title"><h2>${g.members.length} estudiantes</h2><div class="quick-actions">${btn('Exportar lista CSV', 'group-roster', g.id, 'secondary')}${btn('Publicar aviso', 'group-notice', g.id, 'secondary')}</div></div><section class="panel"><div class="member-chips">${g.members.map((uid) => {
+    return `<section class="invite-panel"><div><span class="eyebrow">COMPARTE EL SIGUIENTE RETO</span><h2>Código de invitación</h2><p>Inscripciones ${g.enrollmentOpen === false ? 'pausadas para nuevos miembros' : 'abiertas'}. Los miembros actuales conservan su acceso.</p></div><span class="invite-code large">${g.code}</span><div class="quick-actions">${btn('Copiar código', 'copy', g.code, 'secondary')}${manager ? btn('Editar grupo', 'edit-group', g.id, 'secondary') + btn(g.enrollmentOpen === false ? 'Abrir inscripciones' : 'Pausar inscripciones', 'enrollment', g.id, 'secondary') + btn('Borrar grupo', 'delete-group', g.id, 'secondary') : btn('Salir del grupo', 'leave-group', g.id, 'secondary')}</div></section>${g.description ? `<section class="panel spacer"><h2>Acerca de este grupo</h2><p class="note-content">${esc(g.description)}</p></section>` : ''}${manager ? `<div class="section-title"><h2>${g.members.length} estudiantes</h2><div class="quick-actions">${btn('Exportar lista CSV', 'group-roster', g.id, 'secondary')}${btn('Publicar aviso', 'group-notice', g.id, 'secondary')}</div></div><section class="panel"><div class="member-chips">${g.members.map((uid) => {
       const u = d.users.find((u) => u.id === uid);
       return `<span class="member-chip"><span class="avatar">${esc(u.name[0])}</span>${esc(u.name)}</span>`;
     }).join('') || '<p>Comparte el código para recibir a tus alumnos.</p>'}</div></section>` : ''}<div class="section-title"><h2>Tareas y exámenes</h2>${manager ? '<div class="quick-actions">' + btn('Asignar tarea', 'new-task', g.id, 'secondary') + btn('Crear examen', 'new-exam', g.id) + '</div>' : ''}</div>${tasks.length ? `<div class="two-grid">${tasks.map((t) => {
@@ -867,6 +870,12 @@
       } else if (action === 'group-notice') {
         const g = model.group(id, true);
         form('Publicar un aviso al grupo', 'group-notice', `<p>Se creará una notificación para los miembros activos de <strong>${esc(g.name)}</strong>. Los miembros podrán verla al actualizar RETAMAT. No se envía por correo.</p>` + field('Título del aviso', 'title', '', 'text', 'required minlength="2" maxlength="100"') + area('Mensaje', 'body', '', 2000), `data-id="${esc(id)}"`, 'Publicar aviso');
+      } else if (action === 'delete-group') {
+        const g = model.group(id, true);
+        form('Borrar grupo', 'delete-group', `<p>Se eliminará permanentemente el grupo <strong>${esc(g.name)}</strong> junto con sus tareas y entregas asociadas.</p><label class="checkbox"><input name="confirm" type="checkbox" required> Confirmo que deseo borrar este grupo</label>`, `data-id="${esc(id)}"`, 'Borrar grupo');
+      } else if (action === 'leave-group') {
+        const g = model.group(id);
+        form('Salir del grupo', 'leave-group', `<p>Saldrás del grupo <strong>${esc(g.name)}</strong>. Si más adelante deseas volver a entrar, necesitarás el código de invitación.</p><label class="checkbox"><input name="confirm" type="checkbox" required> Confirmo que deseo salir del grupo</label>`, `data-id="${esc(id)}"`, 'Salir del grupo');
       } else if (action === 'history-page') {
         historyPage += Number(id) < 0 ? -1 : 1;
         render();
@@ -1196,6 +1205,20 @@
         await model.editGroup(f.dataset.id, b.name, f.elements.renew.checked, b.description);
         dialog.close();
         render();
+      } else if (type === 'delete-group') {
+        if (!b.confirm) throw Error('Confirma que deseas borrar el grupo.');
+        await model.deleteGroup(f.dataset.id);
+        dialog.close();
+        go('groups');
+        render();
+        notice('Grupo eliminado.');
+      } else if (type === 'leave-group') {
+        if (!b.confirm) throw Error('Confirma que deseas salir del grupo.');
+        await model.leaveGroup(f.dataset.id);
+        dialog.close();
+        go('groups');
+        render();
+        notice('Saliste del grupo.');
       } else if (type === 'exercise') {
         const media = await readQuestionImage(f, b);
         await model.saveExercise({

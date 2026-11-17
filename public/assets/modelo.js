@@ -320,6 +320,27 @@ window.RetamatModel = (() => {
         if (renew) g.code = hex(crypto.getRandomValues(new Uint8Array(4))).toUpperCase();
       });
     }
+    leaveGroup(gid) {
+      const u = this.require();
+      need(u.role === 'student', 'Solo los estudiantes pueden salir de un grupo.');
+      this.group(gid);
+      this.update(d => {
+        const g = d.groups.find(g => g.id === gid);
+        need(g && g.members.includes(u.id), 'No perteneces a este grupo.');
+        g.members = g.members.filter(id => id !== u.id);
+      });
+      return true;
+    }
+    deleteGroup(gid) {
+      this.group(gid, true);
+      this.update(d => {
+        const taskIds = new Set(d.tasks.filter(t => t.group === gid).map(t => t.id));
+        d.activities = d.activities.filter(a => !taskIds.has(a.task));
+        d.tasks = d.tasks.filter(t => t.group !== gid);
+        d.groups = d.groups.filter(g => g.id !== gid);
+      });
+      return true;
+    }
     saveExercise(b, eid) {
       const u = this.manager();
       const type = b.type || 'number';

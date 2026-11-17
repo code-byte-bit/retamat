@@ -43,8 +43,8 @@ function expire(model,time){
  const d=model.data(),expired=d.activities.filter(a=>!a.done&&(a.deadline&&a.deadline<=time||a.task&&d.tasks.some(t=>t.id===a.task&&(!t.active||!t.legacyNoDue&&t.due<=time)))).map(a=>a.id);
  if(expired.length)model.update(data=>{for(const a of data.activities)if(expired.includes(a.id)){if(a.examReview)finishExam(data,a,time);else a.done=true;}});
 }
-const ALLOWED=new Set(['savePracticeDraft','startSimulation','finishSimulation','startDaily','startSmartReview','nextHint','saveExamDraft','submitExam','attachFile','createGroup','joinGroup','editGroup','setEnrollment','postGroupNotice','saveExercise','createTask','duplicateTask','closeTask','start','answer','startReview','setSettings','bookmark','note','feedback','readNotice','createRoom','joinRoom','controlRoom','chat','editLesson','archiveExercise','export','restore']);
-const STAFF=new Set(['createGroup','editGroup','setEnrollment','postGroupNotice','saveExercise','createTask','duplicateTask','closeTask','feedback','createRoom','controlRoom','archiveExercise']);
+const ALLOWED=new Set(['savePracticeDraft','startSimulation','finishSimulation','startDaily','startSmartReview','nextHint','saveExamDraft','submitExam','attachFile','createGroup','joinGroup','editGroup','leaveGroup','deleteGroup','setEnrollment','postGroupNotice','saveExercise','createTask','duplicateTask','closeTask','start','answer','startReview','setSettings','bookmark','note','feedback','readNotice','createRoom','joinRoom','controlRoom','chat','editLesson','archiveExercise','export','restore']);
+const STAFF=new Set(['createGroup','editGroup','deleteGroup','setEnrollment','postGroupNotice','saveExercise','createTask','duplicateTask','closeTask','feedback','createRoom','controlRoom','archiveExercise']);
 function restoreContent(api,current,payload){
  const incoming=api.validate(clone(payload)),mapping=new Map();
  for(const old of incoming.users){const u=current.users.find(u=>u.email===old.email);if(!u)throw problem(400,'La copia incluye una cuenta no registrada: '+old.email+'. Regístrala antes de importar.');mapping.set(old.id,u.id);}

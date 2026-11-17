@@ -1,7 +1,7 @@
 /* Adaptador de la interfaz original: sesiones HTTP y operaciones guardadas en MySQL. */
 window.RetamatServer = (() => {
   const clone = x => JSON.parse(JSON.stringify(x));
-  const methods = ['savePracticeDraft','startSimulation','finishSimulation','startDaily','startSmartReview','nextHint','saveExamDraft','submitExam','attachFile','createGroup','joinGroup','editGroup','setEnrollment','postGroupNotice','saveExercise','createTask','duplicateTask','closeTask','start','answer','startReview','setSettings','bookmark','note','feedback','readNotice','createRoom','joinRoom','controlRoom','chat','editLesson','archiveExercise','export','restore'];
+  const methods = ['savePracticeDraft','startSimulation','finishSimulation','startDaily','startSmartReview','nextHint','saveExamDraft','submitExam','attachFile','createGroup','joinGroup','editGroup','leaveGroup','deleteGroup','setEnrollment','postGroupNotice','saveExercise','createTask','duplicateTask','closeTask','start','answer','startReview','setSettings','bookmark','note','feedback','readNotice','createRoom','joinRoom','controlRoom','chat','editLesson','archiveExercise','export','restore'];
   async function create() {
     if (location.protocol === 'file:') throw Error('Abre RETAMAT desde el navegador web para continuar.');
     const model = Object.create(RetamatModel.Model.prototype);
