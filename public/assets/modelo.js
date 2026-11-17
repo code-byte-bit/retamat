@@ -211,9 +211,10 @@ window.RetamatModel = (() => {
     logout() {
       this.session.removeItem(SESSION);
     }
-    async register(name, email, password, role = 'student') {
+    async register(name, email, password, role = 'student', matricula = '') {
       need(['student', 'teacher'].includes(role), 'Elige Estudiante o Docente para crear una cuenta.');
       name = text(name, 2, 80);
+      matricula = text(matricula, 2, 40);
       email = text(email, 5, 150).toLowerCase();
       need(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), 'Escribe un correo válido.');
       need(password.length >= 10 && password.length <= 128 && /[A-Za-z]/.test(password) && /\d/.test(password), 'Usa de 10 a 128 caracteres, con letras y números.');
@@ -225,6 +226,7 @@ window.RetamatModel = (() => {
         d.users.push({
           id: uid,
           name,
+          matricula,
           email,
           salt,
           password: hash,

@@ -10,7 +10,7 @@ const derive=promisify(crypto.pbkdf2),clone=x=>JSON.parse(JSON.stringify(x));
 const COLLECTIONS=['topics','lessons','groups','tasks','activities','rooms','exercises','notes','notifications','settings'];
 const SPACE_TABLES=[['espacio_control',`CREATE TABLE IF NOT EXISTS espacio_control (id TINYINT PRIMARY KEY,revision BIGINT UNSIGNED NOT NULL DEFAULT 0,importado BOOLEAN NOT NULL DEFAULT FALSE) ENGINE=InnoDB`],['espacio_registros',`CREATE TABLE IF NOT EXISTS espacio_registros (coleccion VARCHAR(32) NOT NULL,id VARCHAR(120) NOT NULL,datos LONGTEXT NOT NULL,PRIMARY KEY (coleccion,id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`],['espacio_comandos',`CREATE TABLE IF NOT EXISTS espacio_comandos (id VARCHAR(100) NOT NULL,usuario_id VARCHAR(100) NOT NULL,metodo VARCHAR(40) NOT NULL,huella CHAR(64) NOT NULL,resultado LONGTEXT NOT NULL,creada TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY (id,usuario_id),CONSTRAINT fk_espacio_comando_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`]];
 const problem=(status,message)=>Object.assign(Error(message),{status});
-const fakeUser=u=>({id:u.id,name:u.nombre,email:u.correo,role:u.rol,active:Boolean(u.activo),authVersion:u.version_acceso||0,salt:'0'.repeat(32),password:'0'.repeat(64)});
+const fakeUser=u=>({id:u.id,name:u.nombre,matricula:u.matricula||'',email:u.correo,role:u.rol,active:Boolean(u.activo),authVersion:u.version_acceso||0,salt:'0'.repeat(32),password:'0'.repeat(64)});
 function recordMap(d){const map=new Map();for(const collection of COLLECTIONS){const rows=collection==='settings'?Object.entries(d.settings).map(([id,value])=>({id,value})):d[collection].map((value,i)=>({id:value.id||(collection==='notes'?'note-'+crypto.createHash('sha256').update(value.user+'\0'+value.lesson).digest('hex'):String(i)),value}));for(const row of rows)map.set(collection+'\0'+row.id,JSON.stringify(row.value));}return map;}
 async function writeRecords(db,before,after){const old=recordMap(before),next=recordMap(after);for(const [key,value]of next)if(old.get(key)!==value){const [collection,id]=key.split('\0');await db.execute('INSERT INTO espacio_registros (coleccion,id,datos) VALUES (?,?,?) ON DUPLICATE KEY UPDATE datos=VALUES(datos)',[collection,id,value]);}for(const key of old.keys())if(!next.has(key)){const [collection,id]=key.split('\0');await db.execute('DELETE FROM espacio_registros WHERE coleccion = ? AND id = ?',[collection,id]);}}
 function blank(users,revision){return {format:'RETAMAT_HTML',version:1,serverManaged:true,revision,users,...Object.fromEntries(COLLECTIONS.map(k=>[k,k==='settings'?{}:[]]))};}
@@ -34,7 +34,7 @@ function projection(data,actor,time=Date.now()){
   d.notes=d.notes.filter(n=>n.user===actor.id);d.notifications=d.notifications.filter(n=>n.user===actor.id);
   const settings={};for(const [uid,value]of Object.entries(d.settings)){if(uid===actor.id)settings[uid]=value;else{const feedback=Object.fromEntries(Object.entries(value.feedback||{}).filter(([aid])=>d.activities.some(a=>a.id===aid&&teacherTasks.has(a.task))));if(Object.keys(feedback).length)settings[uid]={feedback};}}d.settings=settings;
   const users=new Set([actor.id,...d.groups.flatMap(g=>[g.owner,...g.members]),...d.rooms.flatMap(r=>[r.owner,...r.members]),...d.activities.map(a=>a.owner)]),emails=new Set([actor.id,...d.groups.filter(g=>owned.has(g.id)).flatMap(g=>g.members)]);
-  d.users=d.users.filter(u=>users.has(u.id)).map(u=>({...u,email:emails.has(u.id)?u.email:''}));
+  d.users=d.users.filter(u=>users.has(u.id)).map(u=>({...u,email:emails.has(u.id)?u.email:'',matricula:emails.has(u.id)?u.matricula||'':''}));
  }
  // No salen hashes o sales reales: el motor solo trabaja con marcadores de validación.
  return d;
@@ -59,8 +59,8 @@ function createSpaceService(pool,{now=Date.now}={}){
  async function load(db,req){
   await db.execute('INSERT IGNORE INTO espacio_control (id,revision,importado) VALUES (1,0,FALSE)');
   const [controls]=await db.execute('SELECT revision,importado FROM espacio_control WHERE id = 1 FOR UPDATE');const control=controls[0];
-  const [actorRows]=await db.execute('SELECT id,nombre,correo,rol,activo,version_acceso FROM usuarios WHERE id = ? FOR UPDATE',[req.user.id]);const native=actorRows[0];if(!native||!native.activo||native.version_acceso!==req.authVersion)throw problem(401,'Tu acceso cambió. Inicia sesión de nuevo.');
-  const [users]=await db.execute('SELECT id,nombre,correo,rol,activo,version_acceso FROM usuarios');const accounts=users.map(fakeUser),actor=accounts.find(u=>u.id===req.user.id);
+  const [actorRows]=await db.execute('SELECT * FROM usuarios WHERE id = ? FOR UPDATE',[req.user.id]);const native=actorRows[0];if(!native||!native.activo||native.version_acceso!==req.authVersion)throw problem(401,'Tu acceso cambió. Inicia sesión de nuevo.');
+  const [users]=await db.execute('SELECT * FROM usuarios');const accounts=users.map(fakeUser),actor=accounts.find(u=>u.id===req.user.id);
   let d=blank(accounts,Number(control.revision));
   const [records]=await db.execute('SELECT coleccion,id,datos FROM espacio_registros');
   if(!control.importado){

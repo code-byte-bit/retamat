@@ -12,7 +12,7 @@ const {ADMIN_TABLES,mountAdmin,TABLE_NAMES}=require('./admin');
 const {SPACE_TABLES,mountSpace}=require('./espacio');
 const {FILE_TABLES,mountLive,mountExtras}=require('./mejoras');
 const {RECOVERY_TABLES,mountRecovery,generateBackupCode,normalizeCode}=require('./recuperacion-correo');
-const CORE_TABLES=[['roles',`CREATE TABLE IF NOT EXISTS roles (codigo VARCHAR(20) PRIMARY KEY,nombre VARCHAR(40) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`],['usuarios',`CREATE TABLE IF NOT EXISTS usuarios (id VARCHAR(100) PRIMARY KEY,nombre VARCHAR(80) NOT NULL,correo VARCHAR(150) NOT NULL UNIQUE,rol VARCHAR(20) NOT NULL,activo BOOLEAN NOT NULL DEFAULT TRUE,hash_clave CHAR(64) NOT NULL,sal CHAR(32) NOT NULL,version_acceso INT UNSIGNED NOT NULL DEFAULT 0,fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT fk_usuarios_rol FOREIGN KEY (rol) REFERENCES roles(codigo)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`]];
+const CORE_TABLES=[['roles',`CREATE TABLE IF NOT EXISTS roles (codigo VARCHAR(20) PRIMARY KEY,nombre VARCHAR(40) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`],['usuarios',`CREATE TABLE IF NOT EXISTS usuarios (id VARCHAR(100) PRIMARY KEY,nombre VARCHAR(80) NOT NULL,matricula VARCHAR(40) NOT NULL DEFAULT '',correo VARCHAR(150) NOT NULL UNIQUE,rol VARCHAR(20) NOT NULL,activo BOOLEAN NOT NULL DEFAULT TRUE,hash_clave CHAR(64) NOT NULL,sal CHAR(32) NOT NULL,version_acceso INT UNSIGNED NOT NULL DEFAULT 0,fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT fk_usuarios_rol FOREIGN KEY (rol) REFERENCES roles(codigo)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`]];
 
 // Las sesiones viven en este proceso: reiniciar Node cierra todas las sesiones.
 const SESSION_MS = 8 * 60 * 60 * 1000;
@@ -25,6 +25,8 @@ async function prepareTables(pool) {
     try { await pool.execute('SELECT 1 FROM '+table+' LIMIT 0'); }
     catch(error) { if(error.code !== 'ER_NO_SUCH_TABLE') throw error; await pool.execute(sql); if(table==='roles')await pool.execute("INSERT IGNORE INTO roles (codigo,nombre) VALUES ('student','Estudiante'),('teacher','Docente'),('admin','Administrador')"); }
   }
+  try { await pool.execute('SELECT matricula FROM usuarios LIMIT 0'); }
+  catch(error) { if(error.code === 'ER_BAD_FIELD_ERROR') await pool.execute("ALTER TABLE usuarios ADD COLUMN matricula VARCHAR(40) NOT NULL DEFAULT ''"); }
 }
 function createApp(conexion, {now = Date.now, legacy = false, mailer = undefined, liveHeartbeatMs = 15000} = {}) {
   const sessions = new Map(), limits = new Map();
@@ -160,6 +162,9 @@ function createApp(conexion, {now = Date.now, legacy = false, mailer = undefined
     const b = req.body || {};
     if (typeof b.name !== 'string' || b.name.trim().length < 2 || b.name.trim().length > 80)
       return res.status(400).json({mensaje:'Escribe un nombre de 2 a 80 caracteres.'});
+    const matricula = typeof b.matricula === 'string' ? b.matricula.trim() : '';
+    if (matricula.length < 2 || matricula.length > 40)
+      return res.status(400).json({mensaje:'Escribe una matrícula de 2 a 40 caracteres.'});
     if (typeof b.email !== 'string' || b.email.trim().length > 150 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(b.email.trim()))
       return res.status(400).json({mensaje:'Escribe un correo válido.'});
     if (typeof b.password !== 'string' || b.password.length < 10 || b.password.length > 128 || !/[A-Za-z]/.test(b.password) || !/\d/.test(b.password))
@@ -173,10 +178,20 @@ function createApp(conexion, {now = Date.now, legacy = false, mailer = undefined
       const name = b.name.trim(), email = b.email.trim().toLowerCase();
       const backupCode = generateBackupCode();
       const backupHash = digest(`${id}:${normalizeCode(backupCode)}`);
-      await conexion.execute(
-        'INSERT INTO usuarios (id,nombre,correo,rol,activo,hash_clave,sal,version_acceso) VALUES (?,?,?,?,?,?,?,?)',
-        [id,name,email,role,true,hash,salt.toString('hex'),0]
-      );
+      try {
+        await conexion.execute(
+          'INSERT INTO usuarios (id,nombre,matricula,correo,rol,activo,hash_clave,sal,version_acceso) VALUES (?,?,?,?,?,?,?,?,?)',
+          [id,name,matricula,email,role,true,hash,salt.toString('hex'),0]
+        );
+      } catch (insErr) {
+        if (insErr.code === 'ER_BAD_FIELD_ERROR') {
+          await conexion.execute("ALTER TABLE usuarios ADD COLUMN matricula VARCHAR(40) NOT NULL DEFAULT ''");
+          await conexion.execute(
+            'INSERT INTO usuarios (id,nombre,matricula,correo,rol,activo,hash_clave,sal,version_acceso) VALUES (?,?,?,?,?,?,?,?,?)',
+            [id,name,matricula,email,role,true,hash,salt.toString('hex'),0]
+          );
+        } else throw insErr;
+      }
       try {
         await conexion.execute(
           'INSERT INTO recuperaciones (id,usuario_id,version_acceso,vence_ms,usada,tipo) VALUES (?,?,?,?,FALSE,?)',
@@ -191,7 +206,7 @@ function createApp(conexion, {now = Date.now, legacy = false, mailer = undefined
           );
         } else throw recErr;
       }
-      res.status(201).json({mensaje:'Cuenta creada. Guarda tu código de recuperación.',user:{id,name,email,role,active:true},backupCode});
+      res.status(201).json({mensaje:'Cuenta creada. Guarda tu código de recuperación.',user:{id,name,matricula,email,role,active:true},backupCode});
     } catch(error) {
       if (error.code === 'ER_DUP_ENTRY') return res.status(409).json({mensaje:'Ese correo ya tiene una cuenta registrada.'});
       console.error('Error al registrar:',error.code || 'REGISTRO');
