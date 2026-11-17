@@ -777,6 +777,8 @@
       else if(action==='download-pdf'){
         const query=id==='activity'?{tipo:'actividad',id:key}:id==='group'?{tipo:'grupo',grupo:key}:id==='reports'?{tipo:'grupo',grupo:reportGroup}:{tipo:'personal'};
         window.open('/api/espacio/reporte.pdf?'+new URLSearchParams(query),'_blank','noopener');
+      } else if(action==='download-backup-pdf'){
+        window.open('/api/auth/recuperacion/codigo.pdf?'+id,'_blank','noopener');
       } else if (action === 'discard-note-draft') {
         form('Volver al apunte guardado', 'discard-note-draft', '<p>Se descartarán los cambios de texto que aún no se hayan guardado. Copia el texto si quieres conservarlo antes de continuar.</p><label class="checkbox"><input name="confirm" type="checkbox" required> Descartar cambios pendientes</label>', `data-id="${esc(id)}"`, 'Cargar el texto guardado');
       } else if (action === 'export-notes') {
@@ -1025,7 +1027,8 @@
         location.hash='';
         auth();
         if(result.nextBackupCode){
-          modal('Contraseña restablecida',`<p>Tu contraseña fue actualizada correctamente.</p><p><strong>Nuevo código de recuperación:</strong></p><p class="invite-code large" style="font-size:24px;letter-spacing:3px;text-align:center">${esc(result.nextBackupCode)}</p><p class="small">Guarda este código en un lugar seguro. Tu código anterior ya no funciona.</p><p><button type="button" class="primary" data-action="close">Entendido</button></p>`,true);
+          const pdfParams=new URLSearchParams({code:result.nextBackupCode,email:b.email||''}).toString();
+          modal('Contraseña restablecida',`<p>Tu contraseña fue actualizada correctamente.</p><p><strong>Nuevo código de recuperación:</strong></p><p class="invite-code large" style="font-size:24px;letter-spacing:3px;text-align:center">${esc(result.nextBackupCode)}</p><p class="small">Guarda este código en un lugar seguro. Tu código anterior ya no funciona.</p><div class="quick-actions">${btn('Descargar en PDF','download-backup-pdf',pdfParams,'secondary')}<button type="button" class="primary" data-action="close">Entendido</button></div>`,true);
         } else {
           notice(result.mensaje);
         }
@@ -1059,7 +1062,8 @@
         go(pendingLesson ? 'lesson' : 'home', pendingLesson);
         render();
         if(reg?.backupCode){
-          modal('Guarda tu código de recuperación',`<p>¡Bienvenido a RETAMAT, <strong>${esc(b.name)}</strong>!</p><p>Si en algún momento olvidas tu contraseña, podrás recuperarla usando tu correo y este código:</p><p class="invite-code large" style="font-size:26px;font-weight:800;letter-spacing:4px;text-align:center">${esc(reg.backupCode)}</p><p class="small">Copia o anota este código en un lugar seguro. Funciona una sola vez; al usarlo se genera uno nuevo.</p><p><button type="button" class="primary" data-action="close">Entendido, continuar</button></p>`,true);
+          const pdfParams=new URLSearchParams({code:reg.backupCode,email:b.email||'',name:b.name||''}).toString();
+          modal('Guarda tu código de recuperación',`<p>¡Bienvenido a RETAMAT, <strong>${esc(b.name)}</strong>!</p><p>Si en algún momento olvidas tu contraseña, podrás recuperarla usando tu correo y este código:</p><p class="invite-code large" style="font-size:26px;font-weight:800;letter-spacing:4px;text-align:center">${esc(reg.backupCode)}</p><p class="small">Copia, anota o descarga este código en un lugar seguro. Funciona una sola vez; al usarlo se genera uno nuevo.</p><div class="quick-actions">${btn('Descargar en PDF','download-backup-pdf',pdfParams,'secondary')}<button type="button" class="primary" data-action="close">Entendido, continuar</button></div>`,true);
         }
       } else if (type === 'search') {
         const result = searchItems(b.query)[0];
