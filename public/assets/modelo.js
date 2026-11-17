@@ -302,8 +302,12 @@ window.RetamatModel = (() => {
       const u = this.require();
       need(u.role === 'student', 'Usa una cuenta de estudiante para inscribirte.');
       let gid;
+      const norm = String(code ?? '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().replace(/O/g, '0');
       this.update(d => {
-        const g = d.groups.find(g => g.code === String(code).trim().toUpperCase());
+        const g = d.groups.find(g => g.code.replace(/[^A-Z0-9]/g, '') === norm || g.code.replace(/O/g, '0') === norm);
+        if (!g && d.rooms.some(r => r.code === norm || r.code.replace(/O/g, '0') === norm)) {
+          throw Error('Ese código es de una Sala de desafío. Entra en Desafíos → Unirme a una sala.');
+        }
         need(g, 'Código no encontrado en el servidor.');
         need(g.enrollmentOpen !== false || g.members.includes(u.id), 'El docente pausó las nuevas inscripciones de este grupo.');
         gid = g.id;
@@ -764,8 +768,12 @@ window.RetamatModel = (() => {
       const u = this.require();
       need(u.role === 'student', 'Únete con una cuenta de estudiante.');
       let rid;
+      const norm = String(code ?? '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().replace(/O/g, '0');
       this.update(d => {
-        const r = d.rooms.find(r => r.code === String(code).trim().toUpperCase());
+        const r = d.rooms.find(r => r.code === norm || r.code.replace(/O/g, '0') === norm);
+        if (!r && d.groups.some(g => g.code === norm || g.code.replace(/O/g, '0') === norm)) {
+          throw Error('Ese código pertenece a un Grupo. Entra en Grupos y tareas → Unirme a un grupo.');
+        }
         need(r && r.status === 'waiting', 'No hay una sala en espera con ese código.');
         if (!r.members.includes(u.id)) r.members.push(u.id);
         rid = r.id;
