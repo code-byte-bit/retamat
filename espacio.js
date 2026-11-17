@@ -65,7 +65,16 @@ function createSpaceService(pool,{now=Date.now}={}){
   const [records]=await db.execute('SELECT coleccion,id,datos FROM espacio_registros');
   if(!control.importado){
    d={...clone(motor.api.seed()),users:accounts,serverManaged:true};await importLegacy(db,d,now());motor.api.validate(d);await writeRecords(db,blank(accounts,0),d);await db.execute('UPDATE espacio_control SET importado = TRUE,revision = ? WHERE id = 1',[d.revision]);
-  }else for(const row of records){if(!COLLECTIONS.includes(row.coleccion))throw Error('Colección de servidor desconocida');if(row.coleccion==='settings')d.settings[row.id]=JSON.parse(row.datos);else d[row.coleccion].push(JSON.parse(row.datos));}
+  }else{
+    for(const row of records){if(!COLLECTIONS.includes(row.coleccion))throw Error('Colección de servidor desconocida');if(row.coleccion==='settings')d.settings[row.id]=JSON.parse(row.datos);else d[row.coleccion].push(JSON.parse(row.datos));}
+    const [sqlGroups]=await db.execute('SELECT * FROM grupos'),[sqlMembers]=await db.execute('SELECT * FROM integrantes_grupo'),validUsers=new Set(accounts.map(u=>u.id));
+    for(const g of sqlGroups)if(validUsers.has(g.docente_id)){
+     const code=String(g.codigo||'').trim().toUpperCase(),members=sqlMembers.filter(m=>m.grupo_id===g.id&&validUsers.has(m.usuario_id)).map(m=>m.usuario_id);
+     const existing=d.groups.find(x=>x.id===g.id||x.code===code);
+     if(!existing&&/^[A-F0-9]{8,12}$/.test(code))d.groups.push({id:g.id,owner:g.docente_id,name:g.nombre,description:g.descripcion||'',enrollmentOpen:Boolean(g.inscripciones_abiertas),code,members,created:now()});
+     else if(existing){for(const uid of members)if(!existing.members.includes(uid))existing.members.push(uid);}
+    }
+   }
   motor.api.validate(d);return {d,actor};
  }
  async function run(req,command=null){return transaction(pool,async db=>{
