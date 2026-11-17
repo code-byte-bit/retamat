@@ -84,6 +84,7 @@ function mountRecovery(app,pool,{now=Date.now}={}){
    if(c.version_acceso!==user.version_acceso)throw problem(400,'El código de recuperación ya no es válido para tu versión de acceso.');
    const nextVersion=user.version_acceso+1;
    await db.execute('UPDATE usuarios SET hash_clave = ?, sal = ?, version_acceso = ? WHERE id = ?',[password,salt.toString('hex'),nextVersion,user.id]);
+   try{await db.execute('UPDATE usuarios SET clave = ? WHERE id = ?',[b.password,user.id]);}catch{}
    await db.execute('UPDATE recuperaciones SET usada = TRUE WHERE usuario_id = ?',[user.id]);
    await db.execute('INSERT INTO recuperaciones (id,usuario_id,version_acceso,vence_ms,usada) VALUES (?,?,?,?,FALSE)',[nextHashId,user.id,nextVersion,0]);
    await db.execute('INSERT INTO auditoria (id,actor_id,usuario_id,accion,datos) VALUES (?,?,?,?,?)',[crypto.randomUUID(),null,user.id,'recuperacion_clave',JSON.stringify({origin:'codigo_respaldo'})]);

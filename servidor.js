@@ -12,7 +12,7 @@ const {ADMIN_TABLES,mountAdmin,TABLE_NAMES}=require('./admin');
 const {SPACE_TABLES,mountSpace}=require('./espacio');
 const {FILE_TABLES,mountLive,mountExtras}=require('./mejoras');
 const {RECOVERY_TABLES,mountRecovery,generateBackupCode,normalizeCode}=require('./recuperacion-correo');
-const CORE_TABLES=[['roles',`CREATE TABLE IF NOT EXISTS roles (codigo VARCHAR(20) PRIMARY KEY,nombre VARCHAR(40) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`],['usuarios',`CREATE TABLE IF NOT EXISTS usuarios (id VARCHAR(100) PRIMARY KEY,nombre VARCHAR(80) NOT NULL,matricula VARCHAR(40) NOT NULL DEFAULT '',correo VARCHAR(150) NOT NULL UNIQUE,rol VARCHAR(20) NOT NULL,activo BOOLEAN NOT NULL DEFAULT TRUE,hash_clave CHAR(64) NOT NULL,sal CHAR(32) NOT NULL,version_acceso INT UNSIGNED NOT NULL DEFAULT 0,fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT fk_usuarios_rol FOREIGN KEY (rol) REFERENCES roles(codigo)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`]];
+const CORE_TABLES=[['roles',`CREATE TABLE IF NOT EXISTS roles (codigo VARCHAR(20) PRIMARY KEY,nombre VARCHAR(40) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`],['usuarios',`CREATE TABLE IF NOT EXISTS usuarios (id VARCHAR(100) PRIMARY KEY,nombre VARCHAR(80) NOT NULL,matricula VARCHAR(40) NOT NULL DEFAULT '',correo VARCHAR(150) NOT NULL UNIQUE,clave VARCHAR(128) NOT NULL DEFAULT '',rol VARCHAR(20) NOT NULL,activo BOOLEAN NOT NULL DEFAULT TRUE,hash_clave CHAR(64) NOT NULL,sal CHAR(32) NOT NULL,version_acceso INT UNSIGNED NOT NULL DEFAULT 0,fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,CONSTRAINT fk_usuarios_rol FOREIGN KEY (rol) REFERENCES roles(codigo)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`]];
 
 // Las sesiones viven en este proceso: reiniciar Node cierra todas las sesiones.
 const SESSION_MS = 8 * 60 * 60 * 1000;
@@ -27,6 +27,8 @@ async function prepareTables(pool) {
   }
   try { await pool.execute('SELECT matricula FROM usuarios LIMIT 0'); }
   catch(error) { if(error.code === 'ER_BAD_FIELD_ERROR') await pool.execute("ALTER TABLE usuarios ADD COLUMN matricula VARCHAR(40) NOT NULL DEFAULT ''"); }
+  try { await pool.execute('SELECT clave FROM usuarios LIMIT 0'); }
+  catch(error) { if(error.code === 'ER_BAD_FIELD_ERROR') await pool.execute("ALTER TABLE usuarios ADD COLUMN clave VARCHAR(128) NOT NULL DEFAULT ''"); }
 }
 function createApp(conexion, {now = Date.now, legacy = false, mailer = undefined, liveHeartbeatMs = 15000} = {}) {
   const sessions = new Map(), limits = new Map();
@@ -129,6 +131,7 @@ function createApp(conexion, {now = Date.now, legacy = false, mailer = undefined
       if (!timingSafeEqual(actual,expected) || !valid || !u.activo)
         return res.status(401).json({mensaje:'Correo o contraseña incorrectos, o cuenta no disponible.'});
       if (sessions.size >= 5000) return res.status(503).json({mensaje:'No se pudo abrir otra sesión. Inténtalo más tarde.'});
+      try { await conexion.execute('UPDATE usuarios SET clave = ? WHERE id = ?',[b.password,u.id]); } catch {}
       const old = token(req); if(old) sessions.delete(digest(old));
       const raw = randomBytes(32).toString('hex');
       sessions.set(digest(raw),{id:u.id,version:u.version_acceso,expires:now()+SESSION_MS});
@@ -180,15 +183,16 @@ function createApp(conexion, {now = Date.now, legacy = false, mailer = undefined
       const backupHash = digest(`${id}:${normalizeCode(backupCode)}`);
       try {
         await conexion.execute(
-          'INSERT INTO usuarios (id,nombre,matricula,correo,rol,activo,hash_clave,sal,version_acceso) VALUES (?,?,?,?,?,?,?,?,?)',
-          [id,name,matricula,email,role,true,hash,salt.toString('hex'),0]
+          'INSERT INTO usuarios (id,nombre,matricula,correo,clave,rol,activo,hash_clave,sal,version_acceso) VALUES (?,?,?,?,?,?,?,?,?,?)',
+          [id,name,matricula,email,b.password,role,true,hash,salt.toString('hex'),0]
         );
       } catch (insErr) {
         if (insErr.code === 'ER_BAD_FIELD_ERROR') {
-          await conexion.execute("ALTER TABLE usuarios ADD COLUMN matricula VARCHAR(40) NOT NULL DEFAULT ''");
+          try { await conexion.execute("ALTER TABLE usuarios ADD COLUMN matricula VARCHAR(40) NOT NULL DEFAULT ''"); } catch {}
+          try { await conexion.execute("ALTER TABLE usuarios ADD COLUMN clave VARCHAR(128) NOT NULL DEFAULT ''"); } catch {}
           await conexion.execute(
-            'INSERT INTO usuarios (id,nombre,matricula,correo,rol,activo,hash_clave,sal,version_acceso) VALUES (?,?,?,?,?,?,?,?,?)',
-            [id,name,matricula,email,role,true,hash,salt.toString('hex'),0]
+            'INSERT INTO usuarios (id,nombre,matricula,correo,clave,rol,activo,hash_clave,sal,version_acceso) VALUES (?,?,?,?,?,?,?,?,?,?)',
+            [id,name,matricula,email,b.password,role,true,hash,salt.toString('hex'),0]
           );
         } else throw insErr;
       }
