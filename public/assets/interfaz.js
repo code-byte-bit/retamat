@@ -134,6 +134,66 @@
     const cell = (x) => '"' + String(x ?? '').replace(/^[\s]*[=+@-]/, "'$&").replace(/"/g, '""') + '"';
     download(name, '\uFEFF' + rows.map((r) => r.map(cell).join(',')).join('\r\n'), 'text/csv;charset=utf-8');
   }
+  function downloadBackupPdf(query) {
+    const p = new URLSearchParams(query),
+      code = String(p.get('code') || '').trim(),
+      email = String(p.get('email') || '').trim(),
+      name = String(p.get('name') || '').trim(),
+      generated = date(Date.now());
+    const pdfStr = (s) => '(' + Array.from(String(s ?? '')).map((ch) => {
+      const c = ch.charCodeAt(0);
+      if (ch === '(' || ch === ')' || ch === '\\') return '\\' + ch;
+      if (c >= 32 && c <= 126) return ch;
+      if (c <= 255) return '\\' + c.toString(8).padStart(3, '0');
+      return '?';
+    }).join('') + ')';
+    const lines = [
+      '0.082 0.180 0.169 rg 0 828 595 14 re f',
+      'BT /F2 24 Tf 0.082 0.180 0.169 rg 50 780 Td ' + pdfStr('RETAMAT') + ' Tj ET',
+      'BT /F2 16 Tf 0.125 0.235 0.208 rg 50 752 Td ' + pdfStr('Código de recuperación de cuenta') + ' Tj ET',
+      'BT /F1 10 Tf 0.325 0.365 0.451 rg 50 732 Td ' + pdfStr('Generado: ' + generated) + ' Tj ET'
+    ];
+    let y = 700;
+    if (name || email) {
+      const boxH = name && email ? 52 : 34;
+      lines.push(`0.961 0.969 0.953 rg 50 ${y - boxH} 495 ${boxH} re f`);
+      if (name) lines.push(`BT /F2 10 Tf 0.125 0.235 0.208 rg 64 ${y - 20} Td ${pdfStr('Nombre: ' + name.slice(0, 80))} Tj ET`);
+      if (email) lines.push(`BT /F2 10 Tf 0.125 0.235 0.208 rg 64 ${y - (name ? 38 : 20)} Td ${pdfStr('Correo: ' + email.slice(0, 100))} Tj ET`);
+      y -= boxH + 20;
+    }
+    lines.push(`0.933 0.961 0.925 rg 0.153 0.392 0.341 RG 1.5 w 50 ${y - 105} 495 105 re B`);
+    lines.push(`BT /F2 11 Tf 0.153 0.392 0.341 rg 200 ${y - 30} Td ${pdfStr('TU CÓDIGO DE RECUPERACIÓN')} Tj ET`);
+    lines.push(`BT /F2 30 Tf 0.082 0.180 0.169 rg 195 ${y - 72} Td 3 Tc ${pdfStr(code)} Tj 0 Tc ET`);
+    y -= 135;
+    lines.push(`BT /F2 12 Tf 0.125 0.235 0.208 rg 50 ${y} Td ${pdfStr('¿Cómo usar este código si olvidas tu contraseña?')} Tj ET`);
+    [
+      '1. En la pantalla de inicio de sesión de RETAMAT, pulsa "¿Olvidaste tu contraseña?".',
+      '2. Escribe el correo electrónico de tu cuenta y este código: ' + code,
+      '3. Crea tu nueva contraseña. Al usar este código se generará uno nuevo automáticamente.',
+      'Importante: Guarda este documento en un lugar seguro. Este código funciona una sola vez.'
+    ].forEach((step, idx) => {
+      lines.push(`BT /F1 10.5 Tf 0.125 0.235 0.208 rg 50 ${y - 26 - idx * 22} Td ${pdfStr(step)} Tj ET`);
+    });
+    const stream = lines.join('\n');
+    const objs = [
+      '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n',
+      '2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n',
+      '3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>\nendobj\n',
+      '4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>\nendobj\n',
+      '5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>\nendobj\n',
+      `6 0 obj\n<< /Length ${stream.length} >>\nstream\n${stream}\nendstream\nendobj\n`
+    ];
+    let pdf = '%PDF-1.4\n';
+    const offsets = [0];
+    for (const o of objs) {
+      offsets.push(pdf.length);
+      pdf += o;
+    }
+    const xrefPos = pdf.length;
+    pdf += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` + offsets.slice(1).map((n) => String(n).padStart(10, '0') + ' 00000 n \n').join('') + `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xrefPos}\n%%EOF`;
+    download('RETAMAT_Codigo_Recuperacion.pdf', pdf, 'application/pdf');
+    notice('Código descargado en PDF.');
+  }
   function mathArt() {
     return `<div class="math-art" aria-hidden="true"><svg class="studio-art" viewBox="0 0 440 300" fill="none"><path d="M20 50H420M20 100H420M20 150H420M20 200H420M20 250H420M70 20V280M120 20V280M170 20V280M220 20V280M270 20V280M320 20V280M370 20V280" stroke="currentColor" opacity=".07"/><ellipse cx="221" cy="160" rx="175" ry="102" stroke="currentColor" stroke-dasharray="4 7" opacity=".25" transform="rotate(-18 221 160)"/><path d="M293 48L362 83V158L293 123Z" fill="#b3ccba" stroke="#608779" stroke-width="2"/><path d="M293 48L228 85L293 123L362 83Z" fill="#def0c4" stroke="#608779" stroke-width="2"/><path d="M228 85V158L293 197V123Z" fill="#e6f0dd" stroke="#608779" stroke-width="2"/><path d="M293 123V197L362 158V83" stroke="#608779" stroke-width="2"/><circle cx="76" cy="101" r="29" fill="#e2edb3"/><text x="76" y="111" text-anchor="middle" fill="#315448" font-size="30" font-family="Manrope, sans-serif">π</text><rect x="64" y="146" width="261" height="119" rx="19" fill="#142f29" opacity=".12"/><rect x="58" y="136" width="261" height="119" rx="19" fill="#fffef8" stroke="#d5dfd0"/><text x="81" y="163" fill="#728076" font-size="9" font-weight="700" letter-spacing="1.7" font-family="Manrope, sans-serif">ENCUENTRA EL EQUILIBRIO</text><text x="81" y="201" fill="#1c4037" font-size="29" font-weight="700" font-family="Manrope, sans-serif">2x + 4 = 14</text><path d="M81 216H296" stroke="#e2e8df"/><text x="81" y="238" fill="#286251" font-size="16" font-weight="700" font-family="Manrope, sans-serif">x = 5</text><circle cx="283" cy="233" r="12" fill="#dcedc0"/><path d="M278 233L282 237L288 229" stroke="#315448" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M358 217H386M372 203V231" stroke="currentColor" opacity=".5" stroke-width="2"/><circle cx="155" cy="49" r="5" fill="#e1b595"/><circle cx="388" cy="149" r="5" fill="#9fbca3"/></svg></div>`;
   }
@@ -778,7 +838,7 @@
         const query=id==='activity'?{tipo:'actividad',id:key}:id==='group'?{tipo:'grupo',grupo:key}:id==='reports'?{tipo:'grupo',grupo:reportGroup}:{tipo:'personal'};
         window.open('/api/espacio/reporte.pdf?'+new URLSearchParams(query),'_blank','noopener');
       } else if(action==='download-backup-pdf'){
-        window.open('/api/auth/recuperacion/codigo.pdf?'+id,'_blank','noopener');
+        downloadBackupPdf(id);
       } else if (action === 'discard-note-draft') {
         form('Volver al apunte guardado', 'discard-note-draft', '<p>Se descartarán los cambios de texto que aún no se hayan guardado. Copia el texto si quieres conservarlo antes de continuar.</p><label class="checkbox"><input name="confirm" type="checkbox" required> Descartar cambios pendientes</label>', `data-id="${esc(id)}"`, 'Cargar el texto guardado');
       } else if (action === 'export-notes') {

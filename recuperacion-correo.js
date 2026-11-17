@@ -14,11 +14,12 @@ function normalizeCode(code){
  return String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
 }
 function buildBackupPdf({code,email='',name='',time=Date.now()}){
- const PDFDocument=require('pdfkit');
+ const fs=require('node:fs'),PDFDocument=require('pdfkit');
  const doc=new PDFDocument({size:'A4',margin:50,info:{Title:'RETAMAT · Código de recuperación',Author:'RETAMAT'}}),chunks=[];
  const result=new Promise((resolve,reject)=>{doc.on('data',b=>chunks.push(b));doc.on('end',()=>resolve(Buffer.concat(chunks)));doc.on('error',reject);});
- doc.registerFont('Normal',path.join(__dirname,'fuentes','DejaVuSans.ttf'));
- doc.registerFont('Bold',path.join(__dirname,'fuentes','DejaVuSans-Bold.ttf'));
+ const normalFont=path.join(__dirname,'fuentes','DejaVuSans.ttf'),boldFont=path.join(__dirname,'fuentes','DejaVuSans-Bold.ttf');
+ doc.registerFont('Normal',fs.existsSync(normalFont)?normalFont:'Helvetica');
+ doc.registerFont('Bold',fs.existsSync(boldFont)?boldFont:'Helvetica-Bold');
  doc.rect(0,0,doc.page.width,14).fill('#152e2b');
  doc.font('Bold').fontSize(24).fillColor('#152e2b').text('RETAMAT',50,45);
  doc.font('Bold').fontSize(16).fillColor('#203c35').text('Código de recuperación de cuenta',50,82);

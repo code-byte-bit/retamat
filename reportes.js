@@ -18,7 +18,8 @@ async function report(model,query={},time=Date.now()){
  }else throw problem(400,'Tipo de reporte no válido.');
  const doc=new PDFDocument({size:'A4',margin:45,bufferPages:true,info:{Title:'RETAMAT · '+title,Author:'RETAMAT'}}),chunks=[];
  const result=new Promise((resolve,reject)=>{doc.on('data',b=>chunks.push(b));doc.on('end',()=>resolve(Buffer.concat(chunks)));doc.on('error',reject);});
- doc.registerFont('Normal',path.join(__dirname,'fuentes','DejaVuSans.ttf'));doc.registerFont('Bold',path.join(__dirname,'fuentes','DejaVuSans-Bold.ttf'));
+ const fs=require('node:fs'),normalFont=path.join(__dirname,'fuentes','DejaVuSans.ttf'),boldFont=path.join(__dirname,'fuentes','DejaVuSans-Bold.ttf');
+ doc.registerFont('Normal',fs.existsSync(normalFont)?normalFont:'Helvetica');doc.registerFont('Bold',fs.existsSync(boldFont)?boldFont:'Helvetica-Bold');
  function heading(){doc.rect(0,0,doc.page.width,12).fill('#6338d6');doc.font('Bold').fontSize(23).fillColor('#101b35').text('RETAMAT',45,38);doc.fontSize(15).text(title,45,76,{width:500});doc.font('Normal').fontSize(9).fillColor('#535d73').text(clean(subtitle),45,doc.y+8,{width:500});doc.text('Generado: '+new Date(time).toLocaleString('es-MX',{timeZone:'America/Mexico_City'}),45,doc.y+9,{width:500});doc.y+=18;}
  function header(){const y=doc.y;doc.rect(45,y,500,28).fill('#101b35');let x=45;headers.forEach((h,i)=>{doc.font('Bold').fontSize(9).fillColor('white').text(h,x+8,y+8,{width:widths[i]-16,lineBreak:false});x+=widths[i];});doc.y=y+28;}
  heading();header();if(!rows.length)rows=[headers.map((_,i)=>i===0?'Todavía no hay registros para este reporte.':'—')];
